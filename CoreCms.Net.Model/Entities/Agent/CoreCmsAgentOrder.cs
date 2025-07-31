@@ -87,5 +87,44 @@ namespace CoreCms.Net.Model.Entities
         [SugarColumn(ColumnDescription = "是否删除")]
         [Required(ErrorMessage = "请输入{0}")]
         public System.Boolean isDelete { get; set; }
+
+        /// <summary>
+        /// 是否结算
+        /// </summary>
+        [Display(Name = "是否结算")]
+        [SugarColumn(ColumnDescription = "是否结算")]
+        [Required(ErrorMessage = "请输入{0}")]
+        public System.Boolean isSettled { get; set; }
+
+        /// <summary>
+        /// 区域代理id
+        /// </summary>
+        [Display(Name = "区域代理id")]
+        [SugarColumn(ColumnDescription = "区域代理id")]
+        [Required(ErrorMessage = "请输入{0}")]
+        public System.Int32 agentAreaId { get; set; }
+
+        /// <summary>
+        /// 结算时间
+        /// </summary>
+        [Display(Name = "结算时间")]
+        [SugarColumn(ColumnDescription = "结算时间", IsNullable = true)]
+        public System.DateTime? settleTime { get; set; }
+
+        /// <summary>
+        /// 代理商id
+        /// </summary>
+        [Display(Name = "代理商id")]
+        [SugarColumn(ColumnDescription = "代理商id")]
+        [Required(ErrorMessage = "请输入{0}")]
+        public System.Int32 agentId { get; set; }
+
+        /// <summary>
+        /// 佣金金额
+        /// </summary>
+        [Display(Name = "佣金金额")]
+        [SugarColumn(ColumnDescription = "佣金金额")]
+        [Required(ErrorMessage = "请输入{0}")]
+        public System.Decimal commissionAmount { get; set; }
     }
 }

@@ -68,173 +68,54 @@ namespace CoreCms.Net.Web.Admin.Controllers
         /// <returns></returns>
         [HttpPost]
         [Description("获取列表")]
-        public async Task<JsonResult> GetPageList()
+        public async Task<JsonResult> GetIndex()
         {
             var jm = new AdminUiCallBack();
-            var pageCurrent = Request.Form["page"].FirstOrDefault().ObjectToInt(1);
-            var pageSize = Request.Form["limit"].FirstOrDefault().ObjectToInt(30);
-            var where = PredicateBuilder.True<CoreCmsAgentArea>();
-            //获取排序字段
-            var orderField = Request.Form["orderField"].FirstOrDefault();
-            Expression<Func<CoreCmsAgentArea, object>> orderEx;
-            switch (orderField)
-            {
-                case "id":
-                    orderEx = p => p.id;
-                    break;
-                case "agentId":
-                    orderEx = p => p.agentId;
-                    break;
-                case "areaId":
-                    orderEx = p => p.areaId;
-                    break;
-                case "areaDepth":
-                    orderEx = p => p.areaDepth;
-                    break;
-                case "commissionRate":
-                    orderEx = p => p.commissionRate;
-                    break;
-                case "createTime":
-                    orderEx = p => p.createTime;
-                    break;
-                case "updateTime":
-                    orderEx = p => p.updateTime;
-                    break;
-                default:
-                    orderEx = p => p.id;
-                    break;
-            }
-            //设置排序方式
-            var orderDirection = Request.Form["orderDirection"].FirstOrDefault();
-            var orderBy = orderDirection switch
-            {
-                "asc" => OrderByType.Asc,
-                "desc" => OrderByType.Desc,
-                _ => OrderByType.Desc
-            };
-            //查询筛选
-
-            //代理商ID int
+            var page = Request.Form["page"].FirstOrDefault().ObjectToInt(1);
+            var limit = Request.Form["limit"].FirstOrDefault().ObjectToInt(10);
             var agentId = Request.Form["agentId"].FirstOrDefault().ObjectToInt(0);
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+
+            var where = PredicateBuilder.True<CoreCmsAgentArea>();
             if (agentId > 0)
             {
                 where = where.And(p => p.agentId == agentId);
             }
-            //地区ID int
-            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
             if (areaId > 0)
             {
                 where = where.And(p => p.areaId == areaId);
             }
-            //地区深度 int
-            var areaDepth = Request.Form["areaDepth"].FirstOrDefault().ObjectToInt(0);
-            if (areaDepth > 0)
-            {
-                where = where.And(p => p.areaDepth == areaDepth);
-            }
-            //省级地区ID int
-            var provinceId = Request.Form["provinceId"].FirstOrDefault().ObjectToInt(0);
-            if (provinceId > 0)
-            {
-                where = where.And(p => p.provinceId == provinceId);
-            }
-            //市级地区ID int
-            var cityId = Request.Form["cityId"].FirstOrDefault().ObjectToInt(0);
-            if (cityId > 0)
-            {
-                where = where.And(p => p.cityId == cityId);
-            }
-            //县级地区ID int
-            var countyId = Request.Form["countyId"].FirstOrDefault().ObjectToInt(0);
-            if (countyId > 0)
-            {
-                where = where.And(p => p.countyId == countyId);
-            }
-            //佣金比例 decimal
-            var commissionRate = Request.Form["commissionRate"].FirstOrDefault().ObjectToDecimal(0);
-            if (commissionRate > 0)
-            {
-                where = where.And(p => p.commissionRate == commissionRate);
-            }
-            //创建时间 DateTime
-            var createTime = Request.Form["createTime"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(createTime))
-            {
-                if (createTime.Contains("到"))
+
+            // 使用Join查询
+            var totalCount = new RefAsync<int>();
+            var list = await _coreCmsAgentAreaServices.Queryable()
+                .LeftJoin<CoreCmsAgent>((aa, a) => aa.agentId == a.id)
+                .LeftJoin<CoreCmsArea>((aa, a, ar) => aa.areaId == ar.id)
+                .Where(where)
+                .OrderBy(aa => aa.id, OrderByType.Desc)
+                .Select((aa, a, ar) => new
                 {
-                    var dts = createTime.Split("到");
-                    var dtStart = dts[0].Trim().ObjectToDate();
-                    where = where.And(p => p.createTime > dtStart);
-                    var dtEnd = dts[1].Trim().ObjectToDate();
-                    where = where.And(p => p.createTime < dtEnd);
-                }
-                else
-                {
-                    var dt = createTime.ObjectToDate();
-                    where = where.And(p => p.createTime > dt);
-                }
-            }
-            //更新时间 DateTime
-            var updateTime = Request.Form["updateTime"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(updateTime))
-            {
-                if (updateTime.Contains("到"))
-                {
-                    var dts = updateTime.Split("到");
-                    var dtStart = dts[0].Trim().ObjectToDate();
-                    where = where.And(p => p.updateTime > dtStart);
-                    var dtEnd = dts[1].Trim().ObjectToDate();
-                    where = where.And(p => p.updateTime < dtEnd);
-                }
-                else
-                {
-                    var dt = updateTime.ObjectToDate();
-                    where = where.And(p => p.updateTime > dt);
-                }
-            }
-            //是否删除 bit
-            var isDelete = Request.Form["isDelete"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(isDelete) && isDelete.ToLowerInvariant() == "true")
-            {
-                where = where.And(p => p.isDelete == true);
-            }
-            else if (!string.IsNullOrEmpty(isDelete) && isDelete.ToLowerInvariant() == "false")
-            {
-                where = where.And(p => p.isDelete == false);
-            }
-            //获取数据
-            var list = await _coreCmsAgentAreaServices.QueryPageAsync(where, orderEx, orderBy, pageCurrent, pageSize);
-            
-            // 获取代理商和地区信息
-            var agentIds = list.Select(p => p.agentId).Distinct().ToList();
-            var areaIds = list.Select(p => p.areaId).Distinct().ToList();
-            
-            var agents = await _coreCmsAgentServices.QueryListByClauseAsync(p => agentIds.Contains(p.id));
-            var areas = await _coreCmsAreaServices.QueryListByClauseAsync(p => areaIds.Contains(p.id));
-            
-            // 组装返回数据
-            var resultList = list.Select(item => new
-            {
-                id = item.id,
-                agentId = item.agentId,
-                agentName = agents.FirstOrDefault(a => a.id == item.agentId)?.name ?? "",
-                areaId = item.areaId,
-                areaName = areas.FirstOrDefault(a => a.id == item.areaId)?.name ?? "",
-                areaDepth = item.areaDepth,
-                provinceId = item.provinceId,
-                cityId = item.cityId,
-                countyId = item.countyId,
-                commissionRate = item.commissionRate,
-                isEnable = item.isEnable,
-                createTime = item.createTime,
-                updateTime = item.updateTime,
-                isDelete = item.isDelete
-            }).ToList();
-            
+                    id = aa.id,
+                    agentId = aa.agentId,
+                    agentName = a.name,
+                    areaId = aa.areaId,
+                    areaName = ar.name,
+                    areaDepth = aa.areaDepth,
+                    provinceId = aa.provinceId,
+                    cityId = aa.cityId,
+                    countyId = aa.countyId,
+                    commissionRate = aa.commissionRate,
+                    isEnable = aa.isEnable,
+                    createTime = aa.createTime,
+                    updateTime = aa.updateTime,
+                    isDelete = aa.isDelete
+                })
+                .ToPageListAsync(page, limit, totalCount);
+
             //返回数据
-            jm.data = resultList;
+            jm.data = list;
             jm.code = 0;
-            jm.count = list.TotalCount;
+            jm.count = totalCount.Value;
             jm.msg = "数据调用成功!";
             return new JsonResult(jm);
         }
@@ -311,19 +192,7 @@ namespace CoreCms.Net.Web.Admin.Controllers
             return new JsonResult(jm);
         }
 
-        // POST: Api/CoreCmsAgentArea/Add
-        /// <summary>
-        /// 新增提交
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [Description("新增提交")]
-        public async Task<JsonResult> Add([FromBody] CoreCmsAgentArea entity)
-        {
-            var jm = await _coreCmsAgentAreaServices.InsertAsync(entity);
-            return new JsonResult(jm);
-        }
+
 
         // POST: Api/CoreCmsAgentArea/DoCreate
         /// <summary>
@@ -386,21 +255,7 @@ namespace CoreCms.Net.Web.Admin.Controllers
             return new JsonResult(jm);
         }
 
-        #region 首页数据============================================================
-        // POST: Api/CoreCmsAgentArea/GetIndex
-        /// <summary>
-        /// 首页数据
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [Description("首页数据")]
-        public AdminUiCallBack GetIndex()
-        {
-            //返回数据
-            var jm = new AdminUiCallBack { code = 0 };
-            return jm;
-        }
-        #endregion
+
 
         // POST: Api/CoreCmsAgentArea/GetAgentList
         /// <summary>
@@ -412,9 +267,19 @@ namespace CoreCms.Net.Web.Admin.Controllers
         public async Task<JsonResult> GetAgentList()
         {
             var jm = new AdminUiCallBack();
-            var agents = await _coreCmsAgentServices.QueryListByClauseAsync(p => p.isDelete == false && p.verifyStatus == (int)GlobalEnumVars.AgentVerifyStatus.VerifyYes);
+            var agents = await _coreCmsAgentServices.Queryable()
+                .Where(p => p.isDelete == false && p.verifyStatus == (int)GlobalEnumVars.AgentVerifyStatus.VerifyYes)
+                .OrderBy(p => p.id)
+                .Select(p => new { value = p.id, label = p.name }).ToListAsync();
+
+            if (agents == null || !agents.Any())
+            {
+                jm.code = 1;
+                jm.msg = "无代理商数据";
+                return new JsonResult(jm);
+            }
             jm.code = 0;
-            jm.data = agents.Select(p => new { value = p.id, label = p.name }).ToList();
+            jm.data = agents;
             return new JsonResult(jm);
         }
 
@@ -472,14 +337,14 @@ namespace CoreCms.Net.Web.Admin.Controllers
             return new JsonResult(jm);
         }
 
-        // POST: Api/CoreCmsAgentArea/SetEnable
+        // POST: Api/CoreCmsAgentArea/DoSetIsEnable
         /// <summary>
         /// 设置启用状态
         /// </summary>
         /// <returns></returns>
         [HttpPost]
         [Description("设置启用状态")]
-        public async Task<JsonResult> SetEnable()
+        public async Task<JsonResult> DoSetIsEnable()
         {
             var jm = new AdminUiCallBack();
 

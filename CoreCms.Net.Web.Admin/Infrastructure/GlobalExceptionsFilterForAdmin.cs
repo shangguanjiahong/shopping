@@ -1,4 +1,4 @@
-﻿/***********************************************************************
+/***********************************************************************
  *            Project: CoreCms.Net                                     *
  *                Web: https://CoreCms.Net                             *
  *        ProjectName: 核心内容管理系统                                *
@@ -34,8 +34,8 @@ namespace CoreCms.Net.Web.Admin.Infrastructure
             //处理各种异常
             var jm = new AdminUiCallBack();
             jm.code = (int)status;
-            jm.msg = "系统异常，请查看错误描述并进行解决。";
-            jm.data = context.Exception;
+            jm.msg = "系统异常，请查看错误描述并进行解决。 " + context.Exception.Message + context.Exception.StackTrace;
+            jm.data = null;
             context.ExceptionHandled = true;
             context.Result = new ObjectResult(jm);
         }

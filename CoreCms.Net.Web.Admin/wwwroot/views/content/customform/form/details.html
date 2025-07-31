@@ -34,8 +34,8 @@
 
 
 <script>
-    var debug = layui.setter.debug;
     layui.data.done = function (d) {
+        var debug = layui.setter.debug;
         //开启调试情况下获取接口赋值数据
         if (debug) { console.log(d.params.data); }
 

@@ -1,4 +1,4 @@
-﻿namespace CoreCms.Net.Configuration
+namespace CoreCms.Net.Configuration
 {
     public class GlobalConstVars
     {
@@ -278,6 +278,7 @@
         public const string CacheCoreCmsProductsDistribution = "CacheCoreCmsProductsDistribution"; //货品三级佣金表
         public const string CacheCoreCmsServiceDescription = "CacheCoreCmsServiceDescription";
         public const string CacheCoreCmsAgentGrade = "CacheCoreCmsAgentGrade";
+        public const string CacheCoreCmsAgentArea = "CacheCoreCmsAgentArea";
 
 
     }

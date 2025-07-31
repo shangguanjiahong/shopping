@@ -1,4 +1,4 @@
-﻿/***********************************************************************
+/***********************************************************************
  *            Project: CoreCms
  *        ProjectName: 核心内容管理系统                                
  *                Web: https://www.corecms.net                      
@@ -23,6 +23,8 @@ namespace CoreCms.Net.IRepository
     /// <typeparam name="T">泛型实体类</typeparam>
     public interface IBaseRepository<T> where T : class, new()
     {
+        ISugarQueryable<T> Queryable();
+
         /// <summary>
         ///     根据主值查询单条数据
         /// </summary>

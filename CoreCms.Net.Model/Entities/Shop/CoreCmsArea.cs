@@ -58,6 +58,14 @@ namespace CoreCms.Net.Model.Entities
         [SugarColumn(ColumnDescription = "邮编", IsNullable = true)]
         [StringLength(10, ErrorMessage = "【{0}】不能超过{1}字符长度")]
         public System.String postalCode { get; set; }
+
+        /// <summary>
+        /// 是否显示
+        /// </summary>
+        [Display(Name = "是否显示")]
+        [SugarColumn(ColumnDescription = "是否显示")]
+        [Required(ErrorMessage = "请输入{0}")]
+        public System.Boolean isShow { get; set; }
         /// <summary>
         /// 地区排序
         /// </summary>

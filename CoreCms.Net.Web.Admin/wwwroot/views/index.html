@@ -241,9 +241,9 @@
 </script>
 
 <script>
-    var debug = layui.setter.debug;
     layui.use(['index', 'table', 'laydate', 'util', 'coreHelper', 'laytpl', 'echarts', 'carousel'],
         function () {
+            var debug = layui.setter.debug;
             var $ = layui.$;
             var admin = layui.admin;
             var table = layui.table;
@@ -255,9 +255,11 @@
             var laytpl = layui.laytpl;
             var carousel = layui.carousel;
 
-            getBackLog();
-            ordersEcharts();
-            usersEcharts();
+            $(document).ready(function(){
+                getBackLog();
+                ordersEcharts();
+                usersEcharts();
+            });
             //获取历史登录记录
             coreHelper.Post("Api/Tools/GetSysLoginRecord",
                 {}, function (data) {

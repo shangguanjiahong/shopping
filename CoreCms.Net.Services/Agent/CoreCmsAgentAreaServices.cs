@@ -329,6 +329,11 @@ namespace CoreCms.Net.Services
                         entity.cityId = cityArea.id;
                         entity.provinceId = cityArea.parentId;
                     }
+                    else
+                    {
+                        // 处理找不到城市的情况，例如抛出异常或记录错误
+                        throw new Exception("找不到指定的城市信息");
+                    }
                     break;
             }
         }

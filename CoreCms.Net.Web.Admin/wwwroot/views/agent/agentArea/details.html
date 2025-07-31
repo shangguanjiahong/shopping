@@ -160,17 +160,18 @@
 </script>
 
 <script>
-    var debug = layui.setter.debug;
     layui.data.done = function (d) {
-        //开启调试情况下获取接口赋值数据
-        if (debug) { console.log(d); }
-        
         layui.use(['index', 'form', 'layer', 'util'], function () {
-        var $ = layui.$
-            , admin = layui.admin
-            , form = layui.form
-            , layer = layui.layer
-            , util = layui.util;
+            var $ = layui.$
+                , admin = layui.admin
+                , setter = layui.setter
+                , form = layui.form
+                , layer = layui.layer
+                , util = layui.util;
+
+            var debug = setter.debug;
+            //开启调试情况下获取接口赋值数据
+            if (debug) { console.log(d); }
 
         // 获取URL参数中的ID
         var id = layui.router().search.id;

@@ -1,4 +1,4 @@
-﻿/***********************************************************************
+/***********************************************************************
  *            Project: CoreCms
  *        ProjectName: 核心内容管理系统                                
  *                Web: https://www.corecms.net                      
@@ -24,6 +24,12 @@ namespace CoreCms.Net.IServices
     /// <typeparam name="T"></typeparam>
     public interface IBaseServices<T> where T : class
     {
+        /// <summary>
+        ///     返回ISugarQueryable
+        /// </summary>
+        /// <returns></returns>
+        ISugarQueryable<T> Queryable();
+
         /// <summary>
         ///     根据主值查询单条数据
         /// </summary>

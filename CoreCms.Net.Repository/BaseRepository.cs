@@ -34,6 +34,8 @@ namespace CoreCms.Net.Repository
 
         protected ISqlSugarClient DbClient => DbBaseClient;
 
+        public ISugarQueryable<T> Queryable() => DbBaseClient.Queryable<T>();
+
         /// <summary>
         ///     根据主值查询单条数据
         /// </summary>

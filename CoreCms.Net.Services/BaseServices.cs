@@ -1,4 +1,4 @@
-﻿/***********************************************************************
+/***********************************************************************
  *            Project: CoreCms
  *        ProjectName: 核心内容管理系统                                
  *                Web: https://www.corecms.net                      
@@ -21,8 +21,11 @@ namespace CoreCms.Net.Services
 {
     public class BaseServices<T> : IBaseServices<T> where T : class, new()
     {
+        public IBaseRepository<T> BaseDal { get; set; }
+
+        public ISugarQueryable<T> Queryable() => BaseDal.Queryable();
+
         //public IBaseRepository<TEntity> baseDal = new BaseRepository<TEntity>();
-        public IBaseRepository<T> BaseDal; //通过在子类的构造函数中注入，这里是基类，不用构造函数
 
         /// <summary>
         ///     根据主值查询单条数据
