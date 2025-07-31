@@ -1,0 +1,364 @@
+<title>地区代理详情</title>
+<link rel="stylesheet" href="/lib/layui/css/layui.css">
+<link rel="stylesheet" href="/lib/layuiAdmin/style/admin.css">
+<link rel="stylesheet" href="/static/css/overWrite.css">
+<script src="/lib/jquery/jquery-2.1.4.min.js"></script>
+<script src="/lib/layui/layui.js"></script>
+<div class="layui-form" lay-filter="LAY-app-CoreCmsAgentArea" id="LAY-app-CoreCmsAgentArea" style="padding: 20px 30px 0 0;">
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理商ID</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="agentId"></div>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理商名称</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="agentName"></div>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理商手机</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="agentMobile"></div>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理层级</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="areaDepthText"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理地区</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="areaName"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">省份</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="provinceName"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item" id="cityItem" style="display:none;">
+        <label class="layui-form-label">城市</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="cityName"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item" id="countyItem" style="display:none;">
+        <label class="layui-form-label">区县</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="countyName"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">佣金比例</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="commissionRate"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">启用状态</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="enableStatus"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="remark"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="createTime"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">更新时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" id="updateTime"></div>
+        </div>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="layui-form-item">
+        <div class="layui-col-md12">
+            <fieldset class="layui-elem-field">
+                <legend>统计信息</legend>
+                <div class="layui-field-box">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md3">
+                            <div class="layui-card">
+                                <div class="layui-card-header">总订单数</div>
+                                <div class="layui-card-body">
+                                    <h2 class="layui-text" id="totalOrders">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md3">
+                            <div class="layui-card">
+                                <div class="layui-card-header">总佣金金额</div>
+                                <div class="layui-card-body">
+                                    <h2 class="layui-text" id="totalCommission">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md3">
+                            <div class="layui-card">
+                                <div class="layui-card-header">已结算金额</div>
+                                <div class="layui-card-body">
+                                    <h2 class="layui-text" id="settledCommission">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md3">
+                            <div class="layui-card">
+                                <div class="layui-card-header">未结算金额</div>
+                                <div class="layui-card-body">
+                                    <h2 class="layui-text" id="unsettledCommission">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="layui-form-item layui-layout-admin">
+        <div class="layui-input-block">
+            <div class="layui-footer" style="left: 0;">
+                <button type="button" class="layui-btn" id="editBtn">编辑</button>
+                <button type="button" class="layui-btn layui-btn-normal" id="viewOrdersBtn">查看订单</button>
+                <button type="button" class="layui-btn layui-btn-warm" id="settleBtn">立即结算</button>
+                <button type="button" class="layui-btn layui-btn-danger" id="disableBtn" style="display:none;">禁用</button>
+                <button type="button" class="layui-btn layui-btn-normal" id="enableBtn" style="display:none;">启用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/html" template lay-type="Post" lay-url="{{ layui.setter.apiUrl }}Api/CoreCmsAgentArea/GetDetails" lay-done="layui.data.done(d);">
+</script>
+
+<script>
+    var debug = layui.setter.debug;
+    layui.data.done = function (d) {
+        //开启调试情况下获取接口赋值数据
+        if (debug) { console.log(d); }
+        
+        layui.use(['index', 'form', 'layer', 'util'], function () {
+        var $ = layui.$
+            , admin = layui.admin
+            , form = layui.form
+            , layer = layui.layer
+            , util = layui.util;
+
+        // 获取URL参数中的ID
+        var id = layui.router().search.id;
+        if (!id) {
+            layer.msg('缺少参数ID');
+            return;
+        }
+
+        // 数据通过模板引擎自动加载
+        if (d.code === 0 && d.data) {
+            var data = d.data;
+                    
+                    // 填充数据到页面元素
+                    $('#agentId').text(data.agentId || '');
+                    $('#agentName').text(data.agentName || '');
+                    $('#agentMobile').text(data.agentMobile || '');
+                    
+                    // 设置代理层级文本
+                    var depthText = '';
+                    if (data.areaDepth === 1) {
+                        depthText = '省级代理';
+                    } else if (data.areaDepth === 2) {
+                        depthText = '市级代理';
+                    } else if (data.areaDepth === 3) {
+                        depthText = '县级代理';
+                    } else {
+                        depthText = '未知层级';
+                    }
+                    $('#areaDepthText').text(depthText);
+                    
+                    // 填充地区信息
+                    $('#areaName').text(data.areaName || '');
+                    $('#provinceName').text(data.provinceName || '');
+                    
+                    // 根据层级显示相应字段
+                    if (data.areaDepth >= 2) {
+                        $('#cityItem').show();
+                        $('#cityName').text(data.cityName || '');
+                    }
+                    if (data.areaDepth >= 3) {
+                         $('#countyItem').show();
+                         $('#countyName').text(data.countyName || '');
+                     }
+                     
+                     // 填充其他信息
+                     $('#commissionRate').text((data.commissionRate || 0) + '%');
+                     $('#remark').text(data.remark || '无');
+                     
+                     // 设置启用状态
+                     if (data.isEnable) {
+                         $('#enableStatus').html('<span class="layui-badge layui-bg-green">已启用</span>');
+                     } else {
+                         $('#enableStatus').html('<span class="layui-badge">已禁用</span>');
+                     }
+                     
+                     // 格式化时间
+                     $('#createTime').text(util.toDateString(data.createTime, 'yyyy-MM-dd HH:mm:ss'));
+                     $('#updateTime').text(util.toDateString(data.updateTime, 'yyyy-MM-dd HH:mm:ss'));
+                     
+                     // 控制启用/禁用按钮显示
+                     if (data.isEnable) {
+                         $('#disableBtn').show();
+                         $('#enableBtn').hide();
+                     } else {
+                         $('#disableBtn').hide();
+                         $('#enableBtn').show();
+                     }
+                    
+                    // 加载统计信息
+                    loadStatistics(id);
+                    
+                    // 绑定事件
+                    bindEvents(data);
+        } else {
+            layer.msg(d.msg || '获取数据失败');
+        }
+
+        // 加载统计信息
+        function loadStatistics(agentAreaId) {
+            admin.req({
+                url: layui.setter.apiUrl + "Api/CoreCmsAgentArea/GetStatistics"
+                , data: { agentId: agentAreaId }
+                , type: 'POST'
+                , success: function (res) {
+                    if (res.code === 0 && res.data) {
+                        $('#totalOrders').text(res.data.totalOrders || 0);
+                 } else {
+                     $('#totalOrders').text('0');
+                 }
+             }
+          });
+         }
+
+        // 绑定事件
+        function bindEvents(data) {
+            // 编辑按钮
+            $('#editBtn').on('click', function () {
+                layer.open({
+                    type: 2
+                    , title: '编辑地区代理'
+                    , content: 'edit.html?id=' + id
+                    , maxmin: true
+                    , area: ['800px', '600px']
+                    , btn: ['确定', '取消']
+                    , yes: function (index, layero) {
+                        var iframeWindow = window['layui-layer-iframe' + index]
+                            , submitID = 'LAY-app-submit-CoreCmsAgentArea'
+                            , submit = layero.find('iframe').contents().find('#' + submitID);
+
+                        iframeWindow.layui.form.on('submit(' + submitID + ')', function (data) {
+                            var field = data.field;
+                            
+                            admin.req({
+                                url: layui.setter.apiUrl + "Api/CoreCmsAgentArea/DoEdit"
+                                , data: field
+                                , type: 'POST'
+                                , success: function (res) {
+                                    if (res.code === 0) {
+                                        layer.close(index);
+                                        layer.msg('编辑成功');
+                                        location.reload();
+                                    } else {
+                                        layer.msg(res.msg || '编辑失败');
+                                    }
+                                }
+                            });
+                        });
+
+                        submit.trigger('click');
+                    }
+                });
+            });
+
+            // 查看订单按钮
+            $('#viewOrdersBtn').on('click', function () {
+                layer.open({
+                    type: 2
+                    , title: '代理订单列表'
+                    , content: '../agentAreaOrder/index.html?agentAreaId=' + id
+                    , maxmin: true
+                    , area: ['90%', '90%']
+                });
+            });
+
+            // 立即结算按钮
+            $('#settleBtn').on('click', function () {
+                layer.confirm('确定要对该代理商进行结算吗？', function (index) {
+                    admin.req({
+                        url: layui.setter.apiUrl + "Api/CoreCmsAgentAreaOrder/DoSettle"
+                        , data: { agentAreaId: id }
+                        , type: 'POST'
+                        , success: function (res) {
+                            if (res.code === 0) {
+                                layer.close(index);
+                                layer.msg('结算成功');
+                                loadStatistics(id);
+                            } else {
+                                layer.msg(res.msg || '结算失败');
+                            }
+                        }
+                    });
+                });
+            });
+
+            // 启用/禁用按钮
+            $('#enableBtn, #disableBtn').on('click', function () {
+                var isEnable = $(this).attr('id') === 'enableBtn';
+                var action = isEnable ? '启用' : '禁用';
+                
+                layer.confirm('确定要' + action + '该地区代理吗？', function (index) {
+                    admin.req({
+                        url: layui.setter.apiUrl + "Api/CoreCmsAgentArea/SetEnable"
+                        , data: { id: id, isEnable: isEnable }
+                        , type: 'POST'
+                        , success: function (res) {
+                            if (res.code === 0) {
+                                layer.close(index);
+                                layer.msg(action + '成功');
+                                location.reload();
+                            } else {
+                                layer.msg(res.msg || action + '失败');
+                            }
+                        }
+                    });
+                });
+            });
+        }
+        
+        });
+    };
+</script>

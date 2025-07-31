@@ -1,0 +1,278 @@
+<title>添加地区代理</title>
+<link rel="stylesheet" href="/lib/layui/css/layui.css">
+<link rel="stylesheet" href="/lib/layuiAdmin/style/admin.css">
+<link rel="stylesheet" href="/static/css/overWrite.css">
+<script src="/lib/layui/layui.js"></script>
+<div class="layui-form" lay-filter="LAY-app-CoreCmsAgentArea" id="LAY-app-CoreCmsAgentArea" style="padding: 20px 30px 0 0;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择代理商</label>
+        <div class="layui-input-inline" style="width: 300px;">
+            <select name="agentId" lay-verify="required" lay-search>
+                <option value="">请选择代理商</option>
+            </select>
+        </div>
+        <div class="layui-form-mid layui-word-aux">选择要设置地区代理权限的代理商</div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理层级</label>
+        <div class="layui-input-inline">
+            <select name="areaDepth" lay-verify="required" lay-filter="areaDepthChange">
+                <option value="">请选择代理层级</option>
+                <option value="1">省级代理</option>
+                <option value="2">市级代理</option>
+                <option value="3">县级代理</option>
+            </select>
+        </div>
+        <div class="layui-form-mid layui-word-aux">选择代理商的地区层级</div>
+    </div>
+
+    <div class="layui-form-item" id="provinceSelect">
+        <label class="layui-form-label">选择省份</label>
+        <div class="layui-input-inline" style="width: 200px;">
+            <select name="provinceId" lay-verify="required" lay-filter="provinceChange">
+                <option value="">请选择省份</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item" id="citySelect" style="display: none;">
+        <label class="layui-form-label">选择城市</label>
+        <div class="layui-input-inline" style="width: 200px;">
+            <select name="cityId" lay-filter="cityChange">
+                <option value="">请选择城市</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item" id="countySelect" style="display: none;">
+        <label class="layui-form-label">选择区县</label>
+        <div class="layui-input-inline" style="width: 200px;">
+            <select name="countyId">
+                <option value="">请选择区县</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">佣金比例</label>
+        <div class="layui-input-inline">
+            <input type="number" name="commissionRate" placeholder="请输入佣金比例" autocomplete="off" class="layui-input" lay-verify="required|number" min="0" max="100" step="0.01">
+        </div>
+        <div class="layui-form-mid layui-word-aux">单位：%，范围：0-100</div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否启用</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="isEnable" lay-skin="switch" lay-text="启用|禁用" checked>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入备注信息" class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-layout-admin">
+        <div class="layui-input-block">
+            <div class="layui-footer" style="left: 0;">
+                <button class="layui-btn" lay-submit lay-filter="LAY-app-submit-CoreCmsAgentArea">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.config({
+        base: '/lib/layuiAdmin/',
+        version: new Date().getTime()
+    }).extend({
+        setter: 'config',
+        admin: 'lib/admin',
+        view: 'lib/view'
+    });
+    
+    layui.use(['setter', 'admin', 'form', 'layer'], function () {
+        var $ = layui.$
+            , admin = layui.admin
+            , form = layui.form
+            , layer = layui.layer
+            , setter = layui.setter;
+
+        // 加载代理商列表
+        admin.req({
+            url: setter.apiUrl + "Api/CoreCmsAgentArea/GetAgentList"
+            , type: 'POST'
+            , success: function (res) {
+                if (res.code === 0 && res.data) {
+                    var html = '<option value="">请选择代理商</option>';
+                    layui.each(res.data, function (index, item) {
+                        html += '<option value="' + item.value + '">' + item.label + '</option>';
+                    });
+                    $('select[name="agentId"]').html(html);
+                    form.render('select');
+                }
+            }
+        });
+
+        // 加载省份列表
+        admin.req({
+            url: setter.apiUrl + "Api/CoreCmsAgentArea/GetProvinceList"
+            , type: 'POST'
+            , success: function (res) {
+                if (res.code === 0 && res.data) {
+                    var html = '<option value="">请选择省份</option>';
+                    layui.each(res.data, function (index, item) {
+                        html += '<option value="' + item.id + '">' + item.name + '</option>';
+                    });
+                    $('select[name="provinceId"]').html(html);
+                    form.render('select');
+                }
+            }
+        });
+
+        // 监听代理层级变化
+        form.on('select(areaDepthChange)', function (data) {
+            var depth = parseInt(data.value);
+            $('#citySelect, #countySelect').hide();
+            $('select[name="cityId"], select[name="countyId"]').val('').html('<option value="">请选择</option>');
+            
+            if (depth >= 2) {
+                $('#citySelect').show();
+            }
+            if (depth >= 3) {
+                $('#countySelect').show();
+            }
+            form.render('select');
+        });
+
+        // 监听省份变化
+        form.on('select(provinceChange)', function (data) {
+            var provinceId = data.value;
+            if (provinceId) {
+                admin.req({
+                    url: setter.apiUrl + "Api/CoreCmsAgentArea/GetCityList"
+                    , data: { parentId: provinceId }
+                    , type: 'POST'
+                    , success: function (res) {
+                        if (res.code === 0 && res.data) {
+                            var html = '<option value="">请选择城市</option>';
+                            layui.each(res.data, function (index, item) {
+                                html += '<option value="' + item.id + '">' + item.name + '</option>';
+                            });
+                            $('select[name="cityId"]').html(html);
+                            form.render('select');
+                        }
+                    }
+                });
+            } else {
+                $('select[name="cityId"]').html('<option value="">请选择城市</option>');
+                form.render('select');
+            }
+            // 清空区县
+            $('select[name="countyId"]').html('<option value="">请选择区县</option>');
+            form.render('select');
+        });
+
+        // 监听城市变化
+        form.on('select(cityChange)', function (data) {
+            var cityId = data.value;
+            if (cityId) {
+                admin.req({
+                    url: setter.apiUrl + "Api/CoreCmsAgentArea/GetCountyList"
+                    , data: { parentId: cityId }
+                    , type: 'POST'
+                    , success: function (res) {
+                        if (res.code === 0 && res.data) {
+                            var html = '<option value="">请选择区县</option>';
+                            layui.each(res.data, function (index, item) {
+                                html += '<option value="' + item.id + '">' + item.name + '</option>';
+                            });
+                            $('select[name="countyId"]').html(html);
+                            form.render('select');
+                        }
+                    }
+                });
+            } else {
+                $('select[name="countyId"]').html('<option value="">请选择区县</option>');
+                form.render('select');
+            }
+        });
+
+        //监听提交
+        form.on('submit(LAY-app-submit-CoreCmsAgentArea)', function (data) {
+            var field = data.field;
+            
+            // 验证地区选择
+            var depth = parseInt(field.areaDepth);
+            if (depth >= 2 && !field.cityId) {
+                layer.msg('请选择城市');
+                return false;
+            }
+            if (depth >= 3 && !field.countyId) {
+                layer.msg('请选择区县');
+                return false;
+            }
+
+            // 设置地区ID
+            switch (depth) {
+                case 1:
+                    field.areaId = field.provinceId;
+                    break;
+                case 2:
+                    field.areaId = field.cityId;
+                    break;
+                case 3:
+                    field.areaId = field.countyId;
+                    break;
+            }
+
+            // 转换复选框值
+            field.isEnable = field.isEnable === 'on';
+            
+            // 设置必需的默认字段
+            field.createTime = new Date().toISOString();
+            field.isDelete = false;
+            
+            // 转换数值类型
+            field.agentId = parseInt(field.agentId);
+            field.areaId = parseInt(field.areaId);
+            field.areaDepth = parseInt(field.areaDepth);
+            field.commissionRate = parseFloat(field.commissionRate);
+            
+            if (field.provinceId) field.provinceId = parseInt(field.provinceId);
+            if (field.cityId) field.cityId = parseInt(field.cityId);
+            if (field.countyId) field.countyId = parseInt(field.countyId);
+
+            // 提交数据
+            admin.req({
+                url: setter.apiUrl + "Api/CoreCmsAgentArea/DoCreate"
+                , data: JSON.stringify(field)
+                , type: 'POST'
+                , contentType: 'application/json; charset=utf-8'
+                , dataType: 'json'
+                , success: function (res) {
+                    if (res.code === 0) {
+                        layer.msg(res.msg, { icon: 1 });
+                        // 通知父窗口刷新数据
+                        if (parent && parent.layui && parent.layui.table) {
+                            parent.layui.table.reload('LAY-app-CoreCmsAgentArea-tableBox');
+                        }
+                        // 关闭当前弹窗
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                    } else {
+                        layer.msg(res.msg, { icon: 2 });
+                    }
+                }
+            });
+
+            return false; // 阻止默认表单提交
+        });
+
+    });
+</script>

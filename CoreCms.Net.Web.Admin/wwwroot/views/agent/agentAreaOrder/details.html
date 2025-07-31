@@ -1,0 +1,270 @@
+<title>地区代理订单详情</title>
+<div class="layui-form" lay-filter="LAY-app-CoreCmsAgentAreaOrder" id="LAY-app-CoreCmsAgentAreaOrder" style="padding: 20px 30px 0 0;">
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">订单ID</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{d.id}}</div>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理商信息</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{d.agentName || ''}}（{{d.agentMobile || ''}}）</div>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理地区</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{d.areaName || ''}}</div>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">代理层级</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">
+                {{# if(d.areaDepth === 1) { }}
+                    省级代理
+                {{# } else if(d.areaDepth === 2) { }}
+                    市级代理
+                {{# } else if(d.areaDepth === 3) { }}
+                    县级代理
+                {{# } else { }}
+                    未知层级
+                {{# } }}
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">下单用户</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{d.userName || ''}}（{{d.userMobile || ''}}）</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">订单号</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{d.orderNo || ''}}</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">订单金额</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">￥{{(d.orderAmount || 0).toFixed(2)}}</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">佣金比例</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{d.commissionRate || 0}}%</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">佣金金额</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux" style="color: #ff5722; font-weight: bold;">￥{{(d.commissionAmount || 0).toFixed(2)}}</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">结算状态</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">
+                {{# if(d.isSettled) { }}
+                    <span class="layui-badge layui-bg-green">已结算</span>
+                {{# } else { }}
+                    <span class="layui-badge layui-bg-orange">未结算</span>
+                {{# } }}
+            </div>
+        </div>
+    </div>
+
+    {{# if(d.isSettled && d.settleTime) { }}
+    <div class="layui-form-item">
+        <label class="layui-form-label">结算时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{layui.util.toDateString(d.settleTime, 'yyyy-MM-dd HH:mm:ss')}}</div>
+        </div>
+    </div>
+    {{# } }}
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{d.remark || '无'}}</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{layui.util.toDateString(d.createTime, 'yyyy-MM-dd HH:mm:ss')}}</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">更新时间</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">{{layui.util.toDateString(d.updateTime, 'yyyy-MM-dd HH:mm:ss')}}</div>
+        </div>
+    </div>
+
+    <!-- 订单商品信息 -->
+    <div class="layui-form-item">
+        <div class="layui-col-md12">
+            <fieldset class="layui-elem-field">
+                <legend>订单商品信息</legend>
+                <div class="layui-field-box">
+                    <table class="layui-table" lay-size="sm">
+                        <thead>
+                            <tr>
+                                <th>商品名称</th>
+                                <th>商品规格</th>
+                                <th>数量</th>
+                                <th>单价</th>
+                                <th>小计</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderItems">
+                            <!-- 商品列表将通过JS动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="layui-form-item layui-layout-admin">
+        <div class="layui-input-block">
+            <div class="layui-footer" style="left: 0;">
+                <button type="button" class="layui-btn layui-btn-normal" id="viewOrderBtn">查看原订单</button>
+                {{# if(!d.isSettled) { }}
+                    <button type="button" class="layui-btn layui-btn-warm" id="settleBtn">立即结算</button>
+                {{# } }}
+                <button type="button" class="layui-btn layui-btn-primary" onclick="history.back()">返回</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['form', 'layer', 'util', 'table'], function () {
+        var $ = layui.$
+            , admin = layui.admin
+            , form = layui.form
+            , layer = layui.layer
+            , util = layui.util
+            , table = layui.table;
+
+        // 获取URL参数中的ID
+        var id = layui.router().search.id;
+        if (!id) {
+            layer.msg('缺少参数ID');
+            return;
+        }
+
+        // 加载数据
+        admin.req({
+            url: layui.setter.apiUrl + "Api/CoreCmsAgentAreaOrder/GetDetails"
+            , data: { id: id }
+            , type: 'POST'
+            , success: function (res) {
+                if (res.code === 0 && res.data) {
+                    var data = res.data;
+                    
+                    // 渲染模板
+                    var getTpl = $('#LAY-app-CoreCmsAgentAreaOrder').html();
+                    var view = layui.laytpl(getTpl).render(data);
+                    $('#LAY-app-CoreCmsAgentAreaOrder').html(view);
+                    
+                    // 加载订单商品信息
+                    loadOrderItems(data.orderId);
+                    
+                    // 绑定事件
+                    bindEvents(data);
+                } else {
+                    layer.msg(res.msg || '获取数据失败');
+                }
+            }
+        });
+
+        // 加载订单商品信息
+        function loadOrderItems(orderId) {
+            if (!orderId) {
+                $('#orderItems').html('<tr><td colspan="5" style="text-align: center;">暂无商品信息</td></tr>');
+                return;
+            }
+            
+            admin.req({
+                url: layui.setter.apiUrl + "Api/CoreCmsOrder/GetOrderItems"
+                , data: { orderId: orderId }
+                , type: 'POST'
+                , success: function (res) {
+                    if (res.code === 0 && res.data && res.data.length > 0) {
+                        var html = '';
+                        layui.each(res.data, function (index, item) {
+                            html += '<tr>';
+                            html += '<td>' + (item.goodsName || '') + '</td>';
+                            html += '<td>' + (item.productName || '') + '</td>';
+                            html += '<td>' + (item.nums || 0) + '</td>';
+                            html += '<td>￥' + (item.price || 0).toFixed(2) + '</td>';
+                            html += '<td>￥' + ((item.nums || 0) * (item.price || 0)).toFixed(2) + '</td>';
+                            html += '</tr>';
+                        });
+                        $('#orderItems').html(html);
+                    } else {
+                        $('#orderItems').html('<tr><td colspan="5" style="text-align: center;">暂无商品信息</td></tr>');
+                    }
+                }
+            });
+        }
+
+        // 绑定事件
+        function bindEvents(data) {
+            // 查看原订单按钮
+            $('#viewOrderBtn').on('click', function () {
+                if (data.orderId) {
+                    layer.open({
+                        type: 2
+                        , title: '订单详情'
+                        , content: '../../order/orders/details.html?id=' + data.orderId
+                        , maxmin: true
+                        , area: ['90%', '90%']
+                    });
+                } else {
+                    layer.msg('订单ID不存在');
+                }
+            });
+
+            // 立即结算按钮
+            $('#settleBtn').on('click', function () {
+                layer.confirm('确定要结算该订单的佣金吗？', function (index) {
+                    admin.req({
+                        url: layui.setter.apiUrl + "Api/CoreCmsAgentAreaOrder/DoSettleOrder"
+                        , data: { id: id }
+                        , type: 'POST'
+                        , success: function (res) {
+                            if (res.code === 0) {
+                                layer.close(index);
+                                layer.msg('结算成功');
+                                location.reload();
+                            } else {
+                                layer.msg(res.msg || '结算失败');
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
+    });
+</script>
