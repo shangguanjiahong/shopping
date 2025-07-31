@@ -9,6 +9,7 @@
  ***********************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -108,7 +109,8 @@ namespace CoreCms.Net.Web.Admin.Controllers
                     isEnable = aa.isEnable,
                     createTime = aa.createTime,
                     updateTime = aa.updateTime,
-                    isDelete = aa.isDelete
+                    isDelete = aa.isDelete,
+                    remark = aa.remark
                 })
                 .ToPageListAsync(page, limit, totalCount);
 
@@ -231,6 +233,29 @@ namespace CoreCms.Net.Web.Admin.Controllers
             return new JsonResult(jm);
         }
 
+        // POST: Api/CoreCmsAgentArea/DoDelete
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Description("删除数据")]
+        public async Task<JsonResult> DoDelete([FromBody] FMIntId entity)
+        {
+            var jm = new AdminUiCallBack();
+
+            if (entity?.id <= 0)
+            {
+                jm.msg = GlobalConstVars.DataisNo;
+                return new JsonResult(jm);
+            }
+
+            jm = await _coreCmsAgentAreaServices.DeleteByIdAsync(entity.id);
+
+            return new JsonResult(jm);
+        }
+
         // POST: Api/CoreCmsAgentArea/BatchDelete
         /// <summary>
         /// 批量删除
@@ -257,7 +282,9 @@ namespace CoreCms.Net.Web.Admin.Controllers
 
 
 
-        // POST: Api/CoreCmsAgentArea/GetAgentList
+
+
+
         /// <summary>
         /// 获取代理商列表
         /// </summary>
@@ -446,7 +473,7 @@ namespace CoreCms.Net.Web.Admin.Controllers
         /// <returns></returns>
         [HttpPost]
         [Description("设置佣金比例")]
-        public async Task<JsonResult> DoSetCommission([FromBody] CoreCmsAgentArea entity)
+        public async Task<JsonResult> DoSetCommission([FromBody] FMSetCommissionPost entity)
         {
             var jm = new AdminUiCallBack();
 
@@ -462,20 +489,23 @@ namespace CoreCms.Net.Web.Admin.Controllers
                 return new JsonResult(jm);
             }
 
-            var model = await _coreCmsAgentAreaServices.QueryByIdAsync(entity.id);
-            if (model == null)
+            // 直接更新指定字段，避免查询操作
+            var updateModel = new CoreCmsAgentArea
             {
-                jm.msg = "数据不存在";
-                return new JsonResult(jm);
-            }
+                id = entity.id,
+                commissionRate = entity.commissionRate,
+                updateTime = DateTime.Now
+            };
 
-            model.commissionRate = entity.commissionRate;
-            model.updateTime = DateTime.Now;
-
-            jm = await _coreCmsAgentAreaServices.UpdateAsync(model);
-            if (jm.code == 0)
+            var result = await _coreCmsAgentAreaServices.UpdateAsync(updateModel, new List<string> { "commissionRate", "updateTime" }, null, $"id = {entity.id}");
+            if (result)
             {
+                jm.code = 0;
                 jm.msg = "佣金比例设置成功";
+            }
+            else
+            {
+                jm.msg = "更新失败";
             }
             return new JsonResult(jm);
         }

@@ -45,16 +45,17 @@ namespace CoreCms.Net.Web.Admin.Controllers
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ICoreCmsAgentGradeServices _coreCmsAgentGradeServices;
+        private readonly ICoreCmsAgentServices _agentServices;
 
         /// <summary>
         /// 构造函数
         ///</summary>
-        public CoreCmsAgentGradeController(IWebHostEnvironment webHostEnvironment
-            , ICoreCmsAgentGradeServices coreCmsAgentGradeServices
-            )
+        public CoreCmsAgentGradeController(IWebHostEnvironment webHostEnvironment,
+            ICoreCmsAgentGradeServices coreCmsAgentGradeServices, ICoreCmsAgentServices agentServices)
         {
             _webHostEnvironment = webHostEnvironment;
             _coreCmsAgentGradeServices = coreCmsAgentGradeServices;
+            _agentServices = agentServices;
         }
 
         #region 获取列表============================================================
@@ -284,6 +285,13 @@ namespace CoreCms.Net.Web.Admin.Controllers
         public async Task<AdminUiCallBack> DoDelete([FromBody] FMIntId entity)
         {
             var jm = new AdminUiCallBack();
+
+            var agent = await _agentServices.ExistsAsync(p => p.gradeId == entity.id);
+            if (agent)
+            {
+                jm.msg = "该等级下存在代理商,不允许删除";
+                return jm;
+            }
 
             var model = await _coreCmsAgentGradeServices.ExistsAsync(p => p.id == entity.id, true);
             if (!model)

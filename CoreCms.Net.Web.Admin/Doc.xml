@@ -197,6 +197,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaController.DoDelete(CoreCms.Net.Model.FromBody.FMIntId)">
+            <summary>
+            删除数据
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
         <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaController.BatchDelete">
             <summary>
             批量删除
@@ -245,7 +252,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaController.DoSetCommission(CoreCms.Net.Model.Entities.CoreCmsAgentArea)">
+        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaController.DoSetCommission(CoreCms.Net.Model.FromBody.FMSetCommissionPost)">
             <summary>
             设置佣金比例
             </summary>
@@ -253,10 +260,10 @@
         </member>
         <member name="T:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController">
              <summary>
-             地区代理订单记录表
+             代理商订单记录表
             </summary>
         </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController.#ctor(Microsoft.AspNetCore.Hosting.IWebHostEnvironment,CoreCms.Net.IServices.ICoreCmsAgentAreaOrderServices,CoreCms.Net.IServices.ICoreCmsAgentAreaServices,CoreCms.Net.IServices.ICoreCmsOrderServices,CoreCms.Net.IServices.ICoreCmsUserServices)">
+        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController.#ctor(Microsoft.AspNetCore.Hosting.IWebHostEnvironment,CoreCms.Net.IServices.ICoreCmsAgentOrderServices,CoreCms.Net.IServices.ICoreCmsAgentAreaServices)">
              <summary>
              构造函数
             </summary>
@@ -280,43 +287,12 @@
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController.DoSetSettleStatus(CoreCms.Net.Model.FromBody.FMUpdateBoolDataByIntId)">
-            <summary>
-            设置结算状态
-            </summary>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController.GetStatistics">
-            <summary>
-            获取统计信息
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController.DoSettle">
-            <summary>
-            批量结算代理商订单
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController.DoSettleOrder">
-            <summary>
-            结算单个订单
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentAreaOrderController.BatchSettle">
-            <summary>
-            批量结算选中订单
-            </summary>
-            <returns></returns>
-        </member>
         <member name="T:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController">
              <summary>
              代理商表
             </summary>
         </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.#ctor(Microsoft.AspNetCore.Hosting.IWebHostEnvironment,CoreCms.Net.IServices.ICoreCmsAgentServices,CoreCms.Net.IServices.ICoreCmsAgentGradeServices)">
+        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.#ctor(Microsoft.AspNetCore.Hosting.IWebHostEnvironment,CoreCms.Net.IServices.ICoreCmsAgentServices,CoreCms.Net.IServices.ICoreCmsAgentGradeServices,CoreCms.Net.IServices.ICoreCmsAgentAreaServices)">
              <summary>
              构造函数
             </summary>
@@ -333,6 +309,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.DoEdit(CoreCms.Net.Model.Entities.CoreCmsAgent)">
+            <summary>
+            编辑数据
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
         <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.GetEdit(CoreCms.Net.Model.FromBody.FMIntId)">
             <summary>
             编辑数据
@@ -340,23 +323,23 @@
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.DoEdit(CoreCms.Net.Model.Entities.CoreCmsAgent)">
+        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.DoAudit(CoreCms.Net.Model.FromBody.FMAgentDoAudit)">
             <summary>
-            编辑提交
+            审核数据
             </summary>
             <param name="entity"></param>
             <returns></returns>
         </member>
         <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.DoDelete(CoreCms.Net.Model.FromBody.FMIntId)">
             <summary>
-            单选删除
+            删除数据
             </summary>
             <param name="entity"></param>
             <returns></returns>
         </member>
         <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentController.GetDetails(CoreCms.Net.Model.FromBody.FMIntId)">
             <summary>
-            预览数据
+            详情数据
             </summary>
             <param name="entity"></param>
             <returns></returns>
@@ -436,7 +419,7 @@
              代理商等级设置表
             </summary>
         </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentGradeController.#ctor(Microsoft.AspNetCore.Hosting.IWebHostEnvironment,CoreCms.Net.IServices.ICoreCmsAgentGradeServices)">
+        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentGradeController.#ctor(Microsoft.AspNetCore.Hosting.IWebHostEnvironment,CoreCms.Net.IServices.ICoreCmsAgentGradeServices,CoreCms.Net.IServices.ICoreCmsAgentServices)">
              <summary>
              构造函数
             </summary>
@@ -497,35 +480,6 @@
         <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentGradeController.DoSetisAutoUpGrade(CoreCms.Net.Model.FromBody.FMUpdateBoolDataByIntId)">
             <summary>
             设置是否自动升级
-            </summary>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="T:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentOrderController">
-             <summary>
-             代理商订单记录表
-            </summary>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentOrderController.#ctor(Microsoft.AspNetCore.Hosting.IWebHostEnvironment,CoreCms.Net.IServices.ICoreCmsAgentOrderServices)">
-             <summary>
-             构造函数
-            </summary>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentOrderController.GetPageList">
-            <summary>
-            获取列表
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentOrderController.GetIndex">
-            <summary>
-            首页数据
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:CoreCms.Net.Web.Admin.Controllers.CoreCmsAgentOrderController.GetDetails(CoreCms.Net.Model.FromBody.FMIntId)">
-            <summary>
-            预览数据
             </summary>
             <param name="entity"></param>
             <returns></returns>

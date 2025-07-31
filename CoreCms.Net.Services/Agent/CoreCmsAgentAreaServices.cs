@@ -75,14 +75,6 @@ namespace CoreCms.Net.Services
                 return jm;
             }
 
-            // 检查该地区是否已有代理商
-            var hasAgent = await _dal.CheckAreaHasAgentAsync(entity.areaId, entity.areaDepth);
-            if (hasAgent)
-            {
-                jm.msg = "该地区已有代理商";
-                return jm;
-            }
-
             // 检查代理商是否已绑定其他地区
             var existingBinding = await _dal.QueryListByClauseAsync(p => p.agentId == entity.agentId && p.isDelete == false);
             if (existingBinding.Any())
@@ -91,8 +83,17 @@ namespace CoreCms.Net.Services
                 return jm;
             }
 
+            // 检查该地区是否已有代理商
+            var hasAgent = await _dal.CheckAreaHasAgentAsync(entity.areaId, entity.areaDepth);
+            if (hasAgent)
+            {
+                jm.msg = "该地区已有代理商";
+                return jm;
+            }
+
             // 设置省市县ID
             await SetAreaHierarchy(entity, area);
+
 
             return await _dal.InsertAsync(entity);
         }
@@ -140,7 +141,12 @@ namespace CoreCms.Net.Services
             // 设置省市县ID
             await SetAreaHierarchy(entity, area);
 
-            return await _dal.UpdateAsync(entity);
+            var bl = await _dal.UpdateAsync(entity);
+            if (bl.code == 0)
+            {
+                await _dal.UpdateCaChe();
+            }
+            return bl;
         }
 
         /// <summary>
@@ -158,9 +164,14 @@ namespace CoreCms.Net.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<AdminUiCallBack> DeleteByIdAsync(object id)
+        public new async Task<AdminUiCallBack> DeleteByIdAsync(object id)
         {
-            return await _dal.DeleteByIdAsync(id);
+            var bl = await _dal.DeleteByIdAsync(id);
+            if (bl.code == 0)
+            {
+                await _dal.UpdateCaChe();
+            }
+            return bl;
         }
 
         /// <summary>
@@ -168,9 +179,14 @@ namespace CoreCms.Net.Services
         /// </summary>
         /// <param name="ids"></param>
         /// <returns></returns>
-        public async Task<AdminUiCallBack> DeleteByIdsAsync(int[] ids)
+        public new async Task<AdminUiCallBack> DeleteByIdsAsync(int[] ids)
         {
-            return await _dal.DeleteByIdsAsync(ids);
+            var bl = await _dal.DeleteByIdsAsync(ids);
+            if (bl.code == 0)
+            {
+                await _dal.UpdateCaChe();
+            }
+            return bl;
         }
 
         #endregion
@@ -243,27 +259,28 @@ namespace CoreCms.Net.Services
         public async Task<CoreCmsAgentArea> GetAgentByArea(int? provinceId, int? cityId, int? countyId)
         {
             var agentAreas = await GetAgentsByAreaHierarchyAsync(provinceId, cityId, countyId);
-            
+
             // 优先级：县 > 市 > 省
             if (countyId.HasValue)
             {
                 var countyAgent = agentAreas.FirstOrDefault(x => x.areaDepth == (int)GlobalEnumVars.AreaDepth.County && x.countyId == countyId);
                 if (countyAgent != null) return countyAgent;
             }
-            
+
             if (cityId.HasValue)
             {
                 var cityAgent = agentAreas.FirstOrDefault(x => x.areaDepth == (int)GlobalEnumVars.AreaDepth.City && x.cityId == cityId);
                 if (cityAgent != null) return cityAgent;
             }
-            
+
             if (provinceId.HasValue)
             {
                 var provinceAgent = agentAreas.FirstOrDefault(x => x.areaDepth == (int)GlobalEnumVars.AreaDepth.Province && x.provinceId == provinceId);
                 if (provinceAgent != null) return provinceAgent;
             }
-            
+
             return null;
+
         }
 
         /// <summary>
@@ -277,27 +294,28 @@ namespace CoreCms.Net.Services
         {
             var agentAreas = await GetAgentsByAreaHierarchyAsync(provinceId, cityId, countyId);
             var result = new List<CoreCmsAgentArea>();
-            
+
             // 按层级顺序添加：县 > 市 > 省
             if (countyId.HasValue)
             {
                 var countyAgent = agentAreas.FirstOrDefault(x => x.areaDepth == (int)GlobalEnumVars.AreaDepth.County && x.countyId == countyId);
                 if (countyAgent != null) result.Add(countyAgent);
             }
-            
+
             if (cityId.HasValue)
             {
                 var cityAgent = agentAreas.FirstOrDefault(x => x.areaDepth == (int)GlobalEnumVars.AreaDepth.City && x.cityId == cityId);
                 if (cityAgent != null) result.Add(cityAgent);
             }
-            
+
             if (provinceId.HasValue)
             {
                 var provinceAgent = agentAreas.FirstOrDefault(x => x.areaDepth == (int)GlobalEnumVars.AreaDepth.Province && x.provinceId == provinceId);
                 if (provinceAgent != null) result.Add(provinceAgent);
             }
-            
+
             return result;
+
         }
 
         /// <summary>
@@ -308,34 +326,44 @@ namespace CoreCms.Net.Services
         /// <returns></returns>
         private async Task SetAreaHierarchy(CoreCmsAgentArea entity, CoreCmsArea area)
         {
-            switch (area.depth)
+            entity.provinceId = 0;
+            entity.cityId = 0;
+            entity.countyId = 0;
+
+            if (area.depth == (int)GlobalEnumVars.AreaDepth.Province)
             {
-                case (int)GlobalEnumVars.AreaDepth.Province:
-                    entity.provinceId = area.id;
-                    entity.cityId = null;
-                    entity.countyId = null;
-                    break;
-                case (int)GlobalEnumVars.AreaDepth.City:
-                    entity.cityId = area.id;
-                    entity.provinceId = area.parentId;
-                    entity.countyId = null;
-                    break;
-                case (int)GlobalEnumVars.AreaDepth.County:
-                    entity.countyId = area.id;
-                    // 获取市级信息
-                    var cityArea = await _areaRepository.QueryByIdAsync(area.parentId);
-                    if (cityArea != null)
-                    {
-                        entity.cityId = cityArea.id;
-                        entity.provinceId = cityArea.parentId;
-                    }
-                    else
-                    {
-                        // 处理找不到城市的情况，例如抛出异常或记录错误
-                        throw new Exception("找不到指定的城市信息");
-                    }
-                    break;
+                entity.provinceId = area.id;
             }
+            else if (area.depth == (int)GlobalEnumVars.AreaDepth.City)
+            {
+                entity.cityId = area.id;
+                var province = await _areaRepository.QueryByClauseAsync(p => p.id == area.parentId);
+                if (province != null) entity.provinceId = province.id;
+            }
+            else if (area.depth == (int)GlobalEnumVars.AreaDepth.County)
+            {
+                entity.countyId = area.id;
+                var city = await _areaRepository.QueryByClauseAsync(p => p.id == area.parentId);
+                if (city != null)
+                {
+                    entity.cityId = city.id;
+                    var province = await _areaRepository.QueryByClauseAsync(p => p.id == city.parentId);
+                    if (province != null) entity.provinceId = province.id;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取代理商ID列表
+        /// </summary>
+        /// <param name="provinceId">省ID</param>
+        /// <param name="cityId">市ID</param>
+        /// <param name="countyId">县ID</param>
+        /// <returns></returns>
+        public async Task<List<int>> GetAgentIds(int? provinceId, int? cityId, int? countyId)
+        {
+            var agentAreas = await GetAllLevelAgentsByArea(provinceId, cityId, countyId);
+            return agentAreas.Select(x => x.agentId).Distinct().ToList();
         }
 
         #endregion

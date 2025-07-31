@@ -94,5 +94,14 @@ namespace CoreCms.Net.IServices
         /// <returns></returns>
         Task<IPageList<AgentRankingDTO>> QueryRankingPageAsync(int pageIndex = 1, int pageSize = 20);
 
+        /// <summary>
+        /// 审核代理商
+        /// </summary>
+        /// <param name="id">代理商ID</param>
+        /// <param name="status">审核状态</param>
+        /// <param name="mark">备注</param>
+        /// <returns></returns>
+        Task<AdminUiCallBack> Audit(int id, int status, string mark = "");
+
     }
 }

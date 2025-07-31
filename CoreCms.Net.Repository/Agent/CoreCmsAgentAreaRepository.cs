@@ -71,6 +71,17 @@ namespace CoreCms.Net.Repository
                 jm.msg = "不存在此信息";
                 return jm;
             }
+
+            //如果地区和原来不一样，就需要校验
+            if (entity.areaId != oldModel.areaId)
+            {
+                if (await CheckAreaHasAgentAsync(entity.areaId, entity.areaDepth, entity.agentId))
+                {
+                    jm.msg = "该地区已被其他代理商代理";
+                    return jm;
+                }
+            }
+
             //事物处理过程开始
             oldModel.id = entity.id;
             oldModel.agentId = entity.agentId;
@@ -80,6 +91,9 @@ namespace CoreCms.Net.Repository
             oldModel.cityId = entity.cityId;
             oldModel.countyId = entity.countyId;
             oldModel.commissionRate = entity.commissionRate;
+            oldModel.remark = entity.remark;
+            oldModel.isEnable = entity.isEnable;
+            oldModel.isDelete = entity.isDelete;
             oldModel.updateTime = DateTime.Now;
 
             //事物处理过程结束
@@ -93,6 +107,7 @@ namespace CoreCms.Net.Repository
 
             return jm;
         }
+
 
         /// <summary>
         /// 重写异步更新方法
@@ -204,6 +219,7 @@ namespace CoreCms.Net.Repository
                 .FirstAsync();
         }
 
+
         /// <summary>
         /// 根据省市县获取对应的代理商
         /// </summary>
@@ -213,43 +229,22 @@ namespace CoreCms.Net.Repository
         /// <returns></returns>
         public async Task<List<CoreCmsAgentArea>> GetAgentsByAreaHierarchyAsync(int? provinceId, int? cityId, int? countyId)
         {
-            var query = DbClient.Queryable<CoreCmsAgentArea>()
-                .Where(p => p.isDelete == false);
+            var query = DbClient.Queryable<CoreCmsAgentArea>().Where(p => p.isDelete == false);
 
-            // 构建查询条件，查找所有可能的代理商
-            var conditions = new List<Expression<Func<CoreCmsAgentArea, bool>>>();
-
-            // 县级代理商
-            if (countyId.HasValue && countyId.Value > 0)
+            if (provinceId.HasValue)
             {
-                conditions.Add(p => p.countyId == countyId.Value && p.areaDepth == (int)GlobalEnumVars.AreaDepth.County);
+                query = query.Where(p => p.provinceId == provinceId.Value);
+            }
+            if (cityId.HasValue)
+            {
+                query = query.Where(p => p.cityId == cityId.Value);
+            }
+            if (countyId.HasValue)
+            {
+                query = query.Where(p => p.countyId == countyId.Value);
             }
 
-            // 市级代理商
-            if (cityId.HasValue && cityId.Value > 0)
-            {
-                conditions.Add(p => p.cityId == cityId.Value && p.areaDepth == (int)GlobalEnumVars.AreaDepth.City);
-            }
-
-            // 省级代理商
-            if (provinceId.HasValue && provinceId.Value > 0)
-            {
-                conditions.Add(p => p.provinceId == provinceId.Value && p.areaDepth == (int)GlobalEnumVars.AreaDepth.Province);
-            }
-
-            if (!conditions.Any())
-            {
-                return new List<CoreCmsAgentArea>();
-            }
-
-            // 使用 PredicateBuilder 组合 OR 条件
-            var predicate = conditions[0];
-            for (int i = 1; i < conditions.Count; i++)
-            {
-                predicate = predicate.Or(conditions[i]);
-            }
-
-            return await query.Where(predicate).OrderBy(p => p.areaDepth).ToListAsync();
+            return await query.ToListAsync();
         }
 
         /// <summary>
@@ -271,6 +266,7 @@ namespace CoreCms.Net.Repository
 
             return await query.AnyAsync();
         }
+
 
         #endregion
     }

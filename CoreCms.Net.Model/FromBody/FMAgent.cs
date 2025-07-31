@@ -1,4 +1,4 @@
-﻿/***********************************************************************
+/***********************************************************************
  *            Project: CoreCms
  *        ProjectName: 核心内容管理系统                                
  *                Web: https://www.corecms.net                      
@@ -55,6 +55,27 @@ namespace CoreCms.Net.Model.FromBody
         public string storeDesc { get; set; }
         public string storeLogo { get; set; }
         public string storeName { get; set; }
+    }
+
+    /// <summary>
+    /// 代理商审核提交参数
+    /// </summary>
+    public class FMAgentDoAudit
+    {
+        /// <summary>
+        /// 代理商ID
+        /// </summary>
+        public int id { get; set; }
+
+        /// <summary>
+        /// 审核状态
+        /// </summary>
+        public int status { get; set; }
+
+        /// <summary>
+        /// 审核备注
+        /// </summary>
+        public string mark { get; set; }
     }
 
 

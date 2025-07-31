@@ -123,5 +123,7 @@ namespace CoreCms.Net.Model.Entities
         [SugarColumn(ColumnDescription = "是否删除")]
         [Required(ErrorMessage = "请输入{0}")]
         public System.Boolean isDelete { get; set; }
+        
+
     }
 }

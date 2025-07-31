@@ -9,6 +9,7 @@
  ***********************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -46,16 +47,18 @@ namespace CoreCms.Net.Web.Admin.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ICoreCmsAgentServices _coreCmsAgentServices;
         private readonly ICoreCmsAgentGradeServices _agentGradeServices;
+        private readonly ICoreCmsAgentAreaServices _coreCmsAgentAreaServices;
 
         /// <summary>
         /// 构造函数
         ///</summary>
         public CoreCmsAgentController(IWebHostEnvironment webHostEnvironment
-            , ICoreCmsAgentServices coreCmsAgentServices, ICoreCmsAgentGradeServices agentGradeServices)
+            , ICoreCmsAgentServices coreCmsAgentServices, ICoreCmsAgentGradeServices agentGradeServices, ICoreCmsAgentAreaServices coreCmsAgentAreaServices)
         {
             _webHostEnvironment = webHostEnvironment;
             _coreCmsAgentServices = coreCmsAgentServices;
             _agentGradeServices = agentGradeServices;
+            _coreCmsAgentAreaServices = coreCmsAgentAreaServices;
         }
 
         #region 获取列表============================================================
@@ -242,6 +245,14 @@ namespace CoreCms.Net.Web.Admin.Controllers
             {
                 where = where.And(p => p.isDelete == false);
             }
+
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
+            {
+                // 这里需要根据areaId获取对应的省市县信息，暂时跳过区域过滤
+                // var agentIds = await _coreCmsAgentAreaServices.GetAgentIds(null, null, null);
+                // where = where.And(p => agentIds.Contains(p.id));
+            }
             //获取数据
             var list = await _coreCmsAgentServices.QueryPageAsync(where, orderEx, orderBy, pageCurrent, pageSize, true);
             //返回数据
@@ -274,11 +285,63 @@ namespace CoreCms.Net.Web.Admin.Controllers
                 grades
             };
 
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
+            {
+                // 这里需要根据areaId获取对应的省市县信息，暂时返回空列表
+                var agentIds = new List<int>();
+                jm.otherData = new
+                {
+                    agentIds
+                };
+            }
+
             return jm;
         }
         #endregion
 
         #region 编辑数据============================================================
+        // POST: Api/CoreCmsAgent/GetEdit
+        /// <summary>
+        /// 编辑数据
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Description("编辑数据")]
+        public async Task<AdminUiCallBack> DoEdit([FromBody] CoreCmsAgent entity)
+        {
+            var jm = new AdminUiCallBack();
+
+            var oldModel = await _coreCmsAgentServices.QueryByIdAsync(entity.id, false);
+            if (oldModel == null)
+            {
+                jm.msg = "不存在此信息";
+                return jm;
+            }
+            //事物处理过程开始
+
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
+            {
+                // 这里需要根据areaId获取对应的省市县信息，暂时跳过区域验证
+                // var agentIds = await _coreCmsAgentAreaServices.GetAgentIds(null, null, null);
+                // if (!agentIds.Contains(oldModel.id))
+                // {
+                //     jm.msg = "该代理商不属于此区域";
+                //     return jm;
+                // }
+            }
+
+            var bl = await _coreCmsAgentServices.UpdateAsync(entity);
+            jm.code = bl ? 0 : 1;
+            jm.msg = bl ? GlobalConstVars.EditSuccess : GlobalConstVars.EditFailure;
+
+            //事物处理过程结束
+            return jm;
+        }
+
+
         // POST: Api/CoreCmsAgent/GetEdit
         /// <summary>
         /// 编辑数据
@@ -297,102 +360,113 @@ namespace CoreCms.Net.Web.Admin.Controllers
                 jm.msg = "不存在此信息";
                 return jm;
             }
-            jm.code = 0;
 
-            var agentVerifyStatus = EnumHelper.EnumToList<GlobalEnumVars.AgentVerifyStatus>();
-            var grades = await _agentGradeServices.GetCaChe();
-            jm.data = new
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
             {
-                model,
-                agentVerifyStatus,
-                grades
-            };
+                // 这里需要根据areaId获取对应的省市县信息，暂时跳过区域验证
+                // var agentIds = await _coreCmsAgentAreaServices.GetAgentIds(null, null, null);
+                // if (!agentIds.Contains(model.id))
+                // {
+                //     jm.msg = "该代理商不属于此区域";
+                //     return jm;
+                // }
+            }
+
+            jm.code = 0;
+            jm.data = model;
 
             return jm;
         }
         #endregion
 
-        #region 编辑提交============================================================
-        // POST: Api/CoreCmsAgent/Edit
+        #region 审核数据============================================================
+        // POST: Api/CoreCmsAgent/DoAudit
         /// <summary>
-        /// 编辑提交
+        /// 审核数据
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         [HttpPost]
-        [Description("编辑提交")]
-        public async Task<AdminUiCallBack> DoEdit([FromBody] CoreCmsAgent entity)
+        [Description("审核数据")]
+        public async Task<AdminUiCallBack> DoAudit([FromBody] FMAgentDoAudit entity)
         {
-
             var jm = new AdminUiCallBack();
 
-            var oldModel = await _coreCmsAgentServices.QueryByIdAsync(entity.id);
+            var oldModel = await _coreCmsAgentServices.QueryByIdAsync(entity.id, false);
             if (oldModel == null)
             {
                 jm.msg = "不存在此信息";
                 return jm;
             }
 
-            //事物处理过程开始
-            oldModel.name = entity.name;
-            oldModel.gradeId = entity.gradeId;
-            oldModel.mobile = entity.mobile;
-            oldModel.weixin = entity.weixin;
-            oldModel.qq = entity.qq;
-            oldModel.verifyStatus = entity.verifyStatus;
-            oldModel.updateTime = DateTime.Now;
-            if (oldModel.verifyStatus == (int)GlobalEnumVars.AgentVerifyStatus.VerifyYes)
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
             {
-                oldModel.verifyTime = DateTime.Now;
+                // 这里需要根据areaId获取对应的省市县信息，暂时跳过区域验证
+                // var agentIds = await _coreCmsAgentAreaServices.GetAgentIds(null, null, null);
+                // if (!agentIds.Contains(oldModel.id))
+                // {
+                //     jm.msg = "该代理商不属于此区域";
+                //     return jm;
+                // }
             }
 
-            //事物处理过程结束
-            var bl = await _coreCmsAgentServices.UpdateAsync(oldModel);
-            jm.code = bl ? 0 : 1;
-            jm.msg = bl ? GlobalConstVars.EditSuccess : GlobalConstVars.EditFailure;
+            jm = await _coreCmsAgentServices.Audit(entity.id, entity.status, entity.mark ?? "");
 
             return jm;
-
-
         }
         #endregion
 
         #region 删除数据============================================================
-        // POST: Api/CoreCmsAgent/DoDelete/10
+        // POST: Api/CoreCmsAgent/DoDelete
         /// <summary>
-        /// 单选删除
+        /// 删除数据
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         [HttpPost]
-        [Description("单选删除")]
+        [Description("删除数据")]
         public async Task<AdminUiCallBack> DoDelete([FromBody] FMIntId entity)
         {
             var jm = new AdminUiCallBack();
 
-            var model = await _coreCmsAgentServices.ExistsAsync(p => p.id == entity.id, true);
-            if (!model)
+            var oldModel = await _coreCmsAgentServices.QueryByIdAsync(entity.id, false);
+            if (oldModel == null)
             {
-                jm.msg = GlobalConstVars.DataisNo;
+                jm.msg = "不存在此信息";
                 return jm;
             }
+
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
+            {
+                // 这里需要根据areaId获取对应的省市县信息，暂时跳过区域验证
+                // var agentIds = await _coreCmsAgentAreaServices.GetAgentIds(null, null, null);
+                // if (!agentIds.Contains(oldModel.id))
+                // {
+                //     jm.msg = "该代理商不属于此区域";
+                //     return jm;
+                // }
+            }
+
             var bl = await _coreCmsAgentServices.DeleteByIdAsync(entity.id);
             jm.code = bl ? 0 : 1;
-            jm.msg = bl ? GlobalConstVars.DeleteSuccess : GlobalConstVars.DeleteFailure;
+            jm.msg = bl ? "删除成功!" : "删除失败!";
 
             return jm;
         }
         #endregion
 
-        #region 预览数据============================================================
-        // POST: Api/CoreCmsAgent/GetDetails/10
+        #region 详情数据============================================================
+        // POST: Api/CoreCmsAgent/GetDetails
         /// <summary>
-        /// 预览数据
+        /// 详情数据
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         [HttpPost]
-        [Description("预览数据")]
+        [Description("详情数据")]
         public async Task<AdminUiCallBack> GetDetails([FromBody] FMIntId entity)
         {
             var jm = new AdminUiCallBack();
@@ -403,21 +477,32 @@ namespace CoreCms.Net.Web.Admin.Controllers
                 jm.msg = "不存在此信息";
                 return jm;
             }
-            jm.code = 0;
 
-            var agentVerifyStatus = EnumHelper.EnumToList<GlobalEnumVars.AgentVerifyStatus>();
-            var grades = await _agentGradeServices.GetCaChe();
-
-            jm.data = new
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
             {
-                agentVerifyStatus,
-                grades,
-                model
+                // 这里需要根据areaId获取对应的省市县信息，暂时跳过区域验证
+                // var agentIds = await _coreCmsAgentAreaServices.GetAgentIds(null, null, null);
+                // if (!agentIds.Contains(model.id))
+                // {
+                //     jm.msg = "该代理商不属于此区域";
+                //     return jm;
+                // }
+            }
 
-            };
-
+            jm.code = 0;
+            jm.data = model;
             return jm;
         }
+        #endregion
+
+        #region 删除数据============================================================
+        // POST: Api/CoreCmsAgent/DoDelete/10
+        /// <summary>
+        /// 单选删除
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         #endregion
 
     }

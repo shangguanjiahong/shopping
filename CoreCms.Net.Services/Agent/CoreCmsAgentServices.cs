@@ -299,5 +299,34 @@ namespace CoreCms.Net.Services
         {
             return await _dal.QueryRankingPageAsync(pageIndex, pageSize);
         }
+
+        /// <summary>
+        /// 审核代理商
+        /// </summary>
+        /// <param name="id">代理商ID</param>
+        /// <param name="status">审核状态</param>
+        /// <param name="mark">备注</param>
+        /// <returns></returns>
+        public async Task<AdminUiCallBack> Audit(int id, int status, string mark = "")
+        {
+            var jm = new AdminUiCallBack();
+
+            var oldModel = await _dal.QueryByIdAsync(id);
+            if (oldModel == null)
+            {
+                jm.msg = "不存在此信息";
+                return jm;
+            }
+
+            oldModel.verifyStatus = status;
+            oldModel.updateTime = DateTime.Now;
+            oldModel.verifyTime = DateTime.Now;
+
+            var bl = await _dal.UpdateAsync(oldModel);
+            jm.code = bl ? 0 : 1;
+            jm.msg = bl ? GlobalConstVars.EditSuccess : GlobalConstVars.EditFailure;
+
+            return jm;
+        }
     }
 }

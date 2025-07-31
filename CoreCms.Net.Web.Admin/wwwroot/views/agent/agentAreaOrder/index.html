@@ -37,6 +37,13 @@
             </div>
             <div class="layui-inline">
                 <div class="layui-input-inline">
+                    <select name="areaId" id="areaId">
+                        <option value="">请选择代理区域</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
                     <select name="settleStatus">
                         <option value="">请选择结算状态</option>
                         <option value="0">未结算</option>
@@ -98,6 +105,21 @@
             , form = layui.form
             , layer = layui.layer
             , laydate = layui.laydate;
+
+        admin.req({
+            url: layui.setter.apiUrl + 'Api/CoreCmsAgentArea/GetIndex'
+            , data: { limit: 1000 }
+            , done: function (res) {
+                if (res.code == 0) {
+                    var html = '<option value="">请选择代理区域</option>';
+                    res.data.forEach(function (item) {
+                        html += '<option value="' + item.areaId + '">' + item.areaName + '</option>';
+                    });
+                    $('#areaId').html(html);
+                    layui.form.render('select');
+                }
+            }
+        });
 
         //日期
         laydate.render({
@@ -178,7 +200,7 @@
                     type: 2
                     , title: '查看订单详情'
                     , content: layui.setter.views + 'agent/agentAreaOrder/details.html?id=' + data.id
-                    , maxmin: true
+                    , maxmin: false
                     , area: ['800px', '600px']
                 });
             } else if (obj.event === 'settle') {

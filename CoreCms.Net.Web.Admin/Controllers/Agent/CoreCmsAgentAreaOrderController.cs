@@ -34,9 +34,9 @@ using SqlSugar;
 namespace CoreCms.Net.Web.Admin.Controllers
 {
     /// <summary>
-    /// 地区代理订单记录表
+    /// 代理商订单记录表
     ///</summary>
-    [Description("地区代理订单记录表")]
+    [Description("代理商订单记录表")]
     [Route("api/[controller]/[action]")]
     [ApiController]
     [RequiredErrorForAdmin]
@@ -44,29 +44,25 @@ namespace CoreCms.Net.Web.Admin.Controllers
     public class CoreCmsAgentAreaOrderController : ControllerBase
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly ICoreCmsAgentAreaOrderServices _coreCmsAgentAreaOrderServices;
+        private readonly ICoreCmsAgentOrderServices _CoreCmsAgentOrderServices;
         private readonly ICoreCmsAgentAreaServices _coreCmsAgentAreaServices;
-        private readonly ICoreCmsOrderServices _coreCmsOrderServices;
-        private readonly ICoreCmsUserServices _coreCmsUserServices;
+
 
         /// <summary>
         /// 构造函数
         ///</summary>
         public CoreCmsAgentAreaOrderController(IWebHostEnvironment webHostEnvironment
-            , ICoreCmsAgentAreaOrderServices coreCmsAgentAreaOrderServices
+            , ICoreCmsAgentOrderServices CoreCmsAgentOrderServices
             , ICoreCmsAgentAreaServices coreCmsAgentAreaServices
-            , ICoreCmsOrderServices coreCmsOrderServices
-            , ICoreCmsUserServices coreCmsUserServices
             )
         {
             _webHostEnvironment = webHostEnvironment;
-            _coreCmsAgentAreaOrderServices = coreCmsAgentAreaOrderServices;
+            _CoreCmsAgentOrderServices = CoreCmsAgentOrderServices;
             _coreCmsAgentAreaServices = coreCmsAgentAreaServices;
-            _coreCmsOrderServices = coreCmsOrderServices;
-            _coreCmsUserServices = coreCmsUserServices;
         }
 
         #region 获取列表============================================================
+        // POST: Api/CoreCmsAgentOrder/GetPageList
         /// <summary>
         /// 获取列表
         /// </summary>
@@ -79,39 +75,42 @@ namespace CoreCms.Net.Web.Admin.Controllers
             var pageCurrent = Request.Form["page"].FirstOrDefault().ObjectToInt(1);
             var pageSize = Request.Form["limit"].FirstOrDefault().ObjectToInt(30);
             var where = PredicateBuilder.True<CoreCmsAgentOrder>();
+
+
+            //增加区域查询
+            var areaId = Request.Form["areaId"].FirstOrDefault().ObjectToInt(0);
+            if (areaId > 0)
+            {
+                var agentAreas = await _coreCmsAgentAreaServices.QueryListByClauseAsync(p => p.areaId == areaId);
+                if (agentAreas.Any())
+                {
+                    var agentIds = agentAreas.Select(x => x.agentId).ToList();
+                    where = where.And(p => agentIds.Contains(p.agentId));
+                }
+                else
+                {
+                    where = where.And(p => p.agentId == 0);
+                }
+            }
+
             //获取排序字段
             var orderField = Request.Form["orderField"].FirstOrDefault();
-            Expression<Func<CoreCmsAgentOrder, object>> orderEx;
-            switch (orderField)
+
+            Expression<Func<CoreCmsAgentOrder, object>> orderEx = orderField switch
             {
-                case "id":
-                    orderEx = p => p.id;
-                    break;
-                case "agentId":
-                    orderEx = p => p.agentId;
-                    break;
-                case "buyUserId":
-                    orderEx = p => p.buyUserId;
-                    break;
-                case "orderId":
-                    orderEx = p => p.orderId;
-                    break;
-                case "money":
-                    orderEx = p => p.amount;
-                    break;
-                case "settleStatus":
-                    orderEx = p => p.isSettlement;
-                    break;
-                case "createTime":
-                    orderEx = p => p.createTime;
-                    break;
-                case "updateTime":
-                    orderEx = p => p.updateTime;
-                    break;
-                default:
-                    orderEx = p => p.id;
-                    break;
-            }
+                "id" => p => p.id,
+                "agentId" => p => p.agentId,
+                "userId" => p => p.userId,
+                "buyUserId" => p => p.buyUserId,
+                "orderId" => p => p.orderId,
+                "amount" => p => p.amount,
+                "isSettlement" => p => p.isSettlement,
+                "createTime" => p => p.createTime,
+                "updateTime" => p => p.updateTime,
+                "isDelete" => p => p.isDelete,
+                _ => p => p.id
+            };
+
             //设置排序方式
             var orderDirection = Request.Form["orderDirection"].FirstOrDefault();
             var orderBy = orderDirection switch
@@ -122,46 +121,90 @@ namespace CoreCms.Net.Web.Admin.Controllers
             };
             //查询筛选
 
-            //代理商ID int
+            //序列 int
+            var id = Request.Form["id"].FirstOrDefault().ObjectToInt(0);
+            if (id > 0)
+            {
+                where = where.And(p => p.id == id);
+            }
+            //用户代理商id int
             var agentId = Request.Form["agentId"].FirstOrDefault().ObjectToInt(0);
             if (agentId > 0)
             {
                 where = where.And(p => p.agentId == agentId);
             }
-            //购买用户ID int
+            //用户代理商id int
+            var userId = Request.Form["userId"].FirstOrDefault().ObjectToInt(0);
+            if (userId > 0)
+            {
+                where = where.And(p => p.userId == userId);
+            }
+            //下单用户id int
             var buyUserId = Request.Form["buyUserId"].FirstOrDefault().ObjectToInt(0);
             if (buyUserId > 0)
             {
                 where = where.And(p => p.buyUserId == buyUserId);
             }
-            //订单ID nvarchar
+            //订单编号 nvarchar
             var orderId = Request.Form["orderId"].FirstOrDefault();
             if (!string.IsNullOrEmpty(orderId))
             {
                 where = where.And(p => p.orderId.Contains(orderId));
             }
-            //结算状态 int
-            var settleStatus = Request.Form["settleStatus"].FirstOrDefault().ObjectToInt(-1);
-            if (settleStatus > -1)
+            //是否结算 int
+            var isSettlement = Request.Form["isSettlement"].FirstOrDefault().ObjectToInt(0);
+            if (isSettlement > 0)
             {
-                where = where.And(p => p.isSettlement == settleStatus);
+                where = where.And(p => p.isSettlement == isSettlement);
             }
             //创建时间 datetime
             var createTime = Request.Form["createTime"].FirstOrDefault();
             if (!string.IsNullOrEmpty(createTime))
             {
-                var dt = createTime.ObjectToDate();
-                where = where.And(p => p.createTime > dt);
+                if (createTime.Contains("到"))
+                {
+                    var dts = createTime.Split("到");
+                    var dtStart = dts[0].Trim().ObjectToDate();
+                    where = where.And(p => p.createTime > dtStart);
+                    var dtEnd = dts[1].Trim().ObjectToDate();
+                    where = where.And(p => p.createTime < dtEnd);
+                }
+                else
+                {
+                    var dt = createTime.ObjectToDate();
+                    where = where.And(p => p.createTime > dt);
+                }
             }
             //更新时间 datetime
             var updateTime = Request.Form["updateTime"].FirstOrDefault();
             if (!string.IsNullOrEmpty(updateTime))
             {
-                var dt = updateTime.ObjectToDate();
-                where = where.And(p => p.updateTime > dt);
+                if (updateTime.Contains("到"))
+                {
+                    var dts = updateTime.Split("到");
+                    var dtStart = dts[0].Trim().ObjectToDate();
+                    where = where.And(p => p.updateTime > dtStart);
+                    var dtEnd = dts[1].Trim().ObjectToDate();
+                    where = where.And(p => p.updateTime < dtEnd);
+                }
+                else
+                {
+                    var dt = updateTime.ObjectToDate();
+                    where = where.And(p => p.updateTime > dt);
+                }
+            }
+            //是否删除 bit
+            var isDelete = Request.Form["isDelete"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(isDelete) && isDelete.ToLowerInvariant() == "true")
+            {
+                where = where.And(p => p.isDelete == true);
+            }
+            else if (!string.IsNullOrEmpty(isDelete) && isDelete.ToLowerInvariant() == "false")
+            {
+                where = where.And(p => p.isDelete == false);
             }
             //获取数据
-            var list = await _coreCmsAgentAreaOrderServices.QueryPageAsync(where, orderEx, orderBy, pageCurrent, pageSize);
+            var list = await _CoreCmsAgentOrderServices.QueryPageAsync(where, orderEx, orderBy, pageCurrent, pageSize, true);
             //返回数据
             jm.data = list;
             jm.code = 0;
@@ -172,6 +215,7 @@ namespace CoreCms.Net.Web.Admin.Controllers
         #endregion
 
         #region 首页数据============================================================
+        // POST: Api/CoreCmsAgentOrder/GetIndex
         /// <summary>
         /// 首页数据
         /// </summary>
@@ -182,12 +226,19 @@ namespace CoreCms.Net.Web.Admin.Controllers
         {
             //返回数据
             var jm = new AdminUiCallBack { code = 0 };
+
+            var agentOrderSettlementStatus = EnumHelper.EnumToList<GlobalEnumVars.AgentOrderSettlementStatus>();
+            jm.data = new
+            {
+                agentOrderSettlementStatus
+            };
+
             return jm;
         }
-
         #endregion
 
         #region 预览数据============================================================
+        // POST: Api/CoreCmsAgentOrder/GetDetails/10
         /// <summary>
         /// 预览数据
         /// </summary>
@@ -199,7 +250,7 @@ namespace CoreCms.Net.Web.Admin.Controllers
         {
             var jm = new AdminUiCallBack();
 
-            var model = await _coreCmsAgentAreaOrderServices.QueryByIdAsync(entity.id);
+            var model = await _CoreCmsAgentOrderServices.QueryByIdAsync(entity.id, false);
             if (model == null)
             {
                 jm.msg = "不存在此信息";
@@ -212,207 +263,6 @@ namespace CoreCms.Net.Web.Admin.Controllers
         }
         #endregion
 
-        #region 设置结算状态============================================================
-        /// <summary>
-        /// 设置结算状态
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [Description("设置结算状态")]
-        public async Task<AdminUiCallBack> DoSetSettleStatus([FromBody] FMUpdateBoolDataByIntId entity)
-        {
-            var jm = new AdminUiCallBack();
-
-            var oldModel = await _coreCmsAgentAreaOrderServices.QueryByIdAsync(entity.id);
-            if (oldModel == null)
-            {
-                jm.msg = "不存在此信息";
-                return jm;
-            }
-            oldModel.isSettlement = entity.data ? 1 : 0;
-            oldModel.updateTime = DateTime.Now;
-
-            jm = await _coreCmsAgentAreaOrderServices.UpdateAsync(oldModel);
-
-            return jm;
-        }
-        #endregion
-
-        // POST: Api/CoreCmsAgentAreaOrder/GetStatistics
-        /// <summary>
-        /// 获取统计信息
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [Description("获取统计信息")]
-        public async Task<JsonResult> GetStatistics()
-        {
-            var jm = new AdminUiCallBack();
-
-            var agentAreaId = Request.Form["agentAreaId"].FirstOrDefault().ObjectToInt(0);
-            if (agentAreaId <= 0)
-            {
-                jm.msg = "参数错误";
-                return new JsonResult(jm);
-            }
-
-            var orders = await _coreCmsAgentAreaOrderServices.QueryListByClauseAsync(p => p.agentAreaId == agentAreaId);
-            
-            var statistics = new
-            {
-                totalOrders = orders.Count,
-                totalCommission = orders.Sum(p => p.commissionAmount),
-                settledCommission = orders.Where(p => p.isSettled).Sum(p => p.commissionAmount),
-                unsettledCommission = orders.Where(p => !p.isSettled).Sum(p => p.commissionAmount)
-            };
-
-            jm.code = 0;
-            jm.data = statistics;
-            return new JsonResult(jm);
-        }
-
-        // POST: Api/CoreCmsAgentAreaOrder/DoSettle
-        /// <summary>
-        /// 批量结算代理商订单
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [Description("批量结算代理商订单")]
-        public async Task<JsonResult> DoSettle()
-        {
-            var jm = new AdminUiCallBack();
-
-            var agentAreaId = Request.Form["agentAreaId"].FirstOrDefault().ObjectToInt(0);
-            if (agentAreaId <= 0)
-            {
-                jm.msg = "参数错误";
-                return new JsonResult(jm);
-            }
-
-            // 获取未结算的订单
-            var unsettledOrders = await _coreCmsAgentAreaOrderServices.QueryListByClauseAsync(p => p.agentAreaId == agentAreaId && !p.isSettled);
-            
-            if (!unsettledOrders.Any())
-            {
-                jm.msg = "没有需要结算的订单";
-                return new JsonResult(jm);
-            }
-
-            // 批量更新结算状态
-            foreach (var order in unsettledOrders)
-            {
-                order.isSettled = true;
-                order.settleTime = DateTime.Now;
-                order.updateTime = DateTime.Now;
-            }
-
-            var result = await _coreCmsAgentAreaOrderServices.UpdateAsync(unsettledOrders);
-            if (result.code == 0)
-            {
-                jm.code = 0;
-                jm.msg = $"成功结算 {unsettledOrders.Count} 个订单";
-            }
-            else
-            {
-                jm.msg = result.msg;
-            }
-
-            return new JsonResult(jm);
-        }
-
-        // POST: Api/CoreCmsAgentAreaOrder/DoSettleOrder
-        /// <summary>
-        /// 结算单个订单
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [Description("结算单个订单")]
-        public async Task<JsonResult> DoSettleOrder()
-        {
-            var jm = new AdminUiCallBack();
-
-            var id = Request.Form["id"].FirstOrDefault().ObjectToInt(0);
-            if (id <= 0)
-            {
-                jm.msg = "参数错误";
-                return new JsonResult(jm);
-            }
-
-            var model = await _coreCmsAgentAreaOrderServices.QueryByIdAsync(id);
-            if (model == null)
-            {
-                jm.msg = "订单不存在";
-                return new JsonResult(jm);
-            }
-
-            if (model.isSettled)
-            {
-                jm.msg = "订单已结算";
-                return new JsonResult(jm);
-            }
-
-            model.isSettled = true;
-            model.settleTime = DateTime.Now;
-            model.updateTime = DateTime.Now;
-
-            jm = await _coreCmsAgentAreaOrderServices.UpdateAsync(model);
-            if (jm.code == 0)
-            {
-                jm.msg = "结算成功";
-            }
-
-            return new JsonResult(jm);
-        }
-
-        // POST: Api/CoreCmsAgentAreaOrder/BatchSettle
-        /// <summary>
-        /// 批量结算选中订单
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [Description("批量结算选中订单")]
-        public async Task<JsonResult> BatchSettle()
-        {
-            var jm = new AdminUiCallBack();
-
-            var ids = Request.Form["ids"].FirstOrDefault();
-            if (string.IsNullOrEmpty(ids))
-            {
-                jm.msg = "请选择要结算的订单";
-                return new JsonResult(jm);
-            }
-
-            var idArray = ids.Split(',').Select(int.Parse).ToArray();
-            var orders = await _coreCmsAgentAreaOrderServices.QueryListByClauseAsync(p => idArray.Contains(p.id) && !p.isSettled);
-            
-            if (!orders.Any())
-            {
-                jm.msg = "没有需要结算的订单";
-                return new JsonResult(jm);
-            }
-
-            // 批量更新结算状态
-            foreach (var order in orders)
-            {
-                order.isSettled = true;
-                order.settleTime = DateTime.Now;
-                order.updateTime = DateTime.Now;
-            }
-
-            var result = await _coreCmsAgentAreaOrderServices.UpdateAsync(orders);
-            if (result.code == 0)
-            {
-                jm.code = 0;
-                jm.msg = $"成功结算 {orders.Count} 个订单";
-            }
-            else
-            {
-                jm.msg = result.msg;
-            }
-
-            return new JsonResult(jm);
-        }
 
     }
 }

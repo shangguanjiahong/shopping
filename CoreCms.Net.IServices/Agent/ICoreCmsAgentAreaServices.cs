@@ -124,6 +124,15 @@ namespace CoreCms.Net.IServices
         /// <returns></returns>
         Task<List<CoreCmsAgentArea>> GetAllLevelAgentsByArea(int? provinceId, int? cityId, int? countyId);
 
+        /// <summary>
+        /// 获取代理商ID列表
+        /// </summary>
+        /// <param name="provinceId">省ID</param>
+        /// <param name="cityId">市ID</param>
+        /// <param name="countyId">县ID</param>
+        /// <returns></returns>
+        Task<List<int>> GetAgentIds(int? provinceId, int? cityId, int? countyId);
+
         #endregion
     }
 }

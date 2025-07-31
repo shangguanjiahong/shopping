@@ -25,13 +25,19 @@
 <script>
 $(document).ready(function() {
     layui.config({
-        base: '/lib/layuiAdmin/' //静态资源所在路径
+        base: '/lib/layuiAdmin/',
+        version: new Date().getTime()
     }).extend({
-        index: 'lib/index' //主入口模块
-    }).use(['index', 'form'], function(){
+        setter: 'config',
+        admin: 'lib/admin',
+        view: 'lib/view'
+    });
+    
+    layui.use(['setter', 'admin', 'form'], function(){
     var $ = layui.$
         , admin = layui.admin
-        , form = layui.form;
+        , form = layui.form
+        , setter = layui.setter;
     
     // 获取URL参数
     function getUrlParam(name) {
@@ -46,7 +52,7 @@ $(document).ready(function() {
         
         // 获取当前佣金比例
         admin.req({
-            url: layui.setter.apiUrl + "Api/CoreCmsAgentArea/GetDetails"
+            url: setter.apiUrl + "Api/CoreCmsAgentArea/GetDetails"
             , data: { id: id }
             , type: 'POST'
             , success: function (res) {
@@ -66,7 +72,7 @@ $(document).ready(function() {
         field.commissionRate = parseFloat(field.commissionRate);
         
         admin.req({
-            url: layui.setter.apiUrl + "Api/CoreCmsAgentArea/DoSetCommission"
+            url: setter.apiUrl + "Api/CoreCmsAgentArea/DoSetCommission"
             , data: JSON.stringify(field)
             , type: 'POST'
             , contentType: 'application/json; charset=utf-8'

@@ -103,19 +103,7 @@
         {{# } else { }}
         <a class="layui-btn layui-btn-xs" lay-event="setEnable" data-enable="true" title="启用代理">启用</a>
         {{# } }}
-        <a class="layui-btn layui-btn-danger layui-btn-xs" data-dropdown="#CoreCmsAgentAreaTbDelDrop{{d.LAY_NUM}}" no-shade="true" title="删除代理">删除</a>
-    </div>
-    <div class="dropdown-menu-nav dropdown-popconfirm dropdown-top-right layui-hide" id="CoreCmsAgentAreaTbDelDrop{{d.LAY_NUM}}"
-         style="max-width: 200px;white-space: normal;min-width: auto;margin-left: 10px;">
-        <div class="dropdown-anchor"></div>
-        <div class="dropdown-popconfirm-title">
-            <i class="layui-icon layui-icon-help"></i>
-            确定要删除【{{d.agentName}}】的地区代理权限吗？
-        </div>
-        <div class="dropdown-popconfirm-btn">
-            <a class="layui-btn layui-btn-primary cursor" btn-cancel>取消</a>
-            <a class="layui-btn layui-btn-normal cursor" lay-event="del">确定</a>
-        </div>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" title="删除代理">删除</a>
     </div>
 </script>
 
@@ -135,7 +123,8 @@
             , admin = layui.admin
             , table = layui.table
             , form = layui.form
-            , layer = layui.layer;
+            , layer = layui.layer
+            , coreHelper = layui.coreHelper;
 
         //监听搜索
         form.on('submit(LAY-app-CoreCmsAgentArea-search)', function (data) {
@@ -196,7 +185,7 @@
                     type: 2
                     , title: '添加地区代理'
                     , content: layui.setter.views + 'agent/agentArea/create.html'
-                    , maxmin: true
+                    , maxmin: false
                     , area: ['800px', '600px']
                     , success: function(layero, index) {
                         // 确保弹窗内容加载完成后重新渲染表单
@@ -254,31 +243,17 @@
                     type: 2
                     , title: '查看地区代理详情'
                     , content: layui.setter.views + 'agent/agentArea/details.html?id=' + data.id
-                    , maxmin: true
+                    , maxmin: false
                     , area: ['800px', '600px']
                 });
             } else if (obj.event === 'del') {
-                admin.req({
-                    url: layui.setter.apiUrl + "Api/CoreCmsAgentArea/DoDelete"
-                    , data: {
-                        id: data.id
-                    }
-                    , type: 'POST'
-                    , success: function (res) {
-                        if (res.code === 0) {
-                            obj.del();
-                            layer.msg(res.msg);
-                        } else {
-                            layer.msg(res.msg);
-                        }
-                    }
-                });
+                doDelete(obj);
             } else if (obj.event === 'edit') {
                 admin.popup({
                     type: 2
                     , title: '编辑地区代理'
                     , content: layui.setter.views + 'agent/agentArea/edit.html?id=' + data.id
-                    , maxmin: true
+                    , maxmin: false
                     , area: ['800px', '600px']
                     , success: function(layero, index) {
                         // 确保弹窗内容加载完成后重新渲染表单
@@ -293,7 +268,7 @@
                     type: 2
                     , title: '设置佣金比例'
                     , content: layui.setter.views + 'agent/agentArea/setCommission.html?id=' + data.id
-                    , maxmin: true
+                    , maxmin: false
                     , area: ['600px', '400px']
                     , success: function(layero, index) {
                         // 确保弹窗内容加载完成后重新渲染表单
@@ -308,7 +283,7 @@
                     type: 2
                     , title: '查看代理订单'
                     , content: layui.setter.views + 'agent/agentAreaOrder/index.html?agentId=' + data.agentId
-                    , maxmin: true
+                    , maxmin: false
                     , area: ['90%', '90%']
                 });
             } else if (obj.event === 'setEnable') {
@@ -317,7 +292,7 @@
                     url: layui.setter.apiUrl + "Api/CoreCmsAgentArea/DoSetIsEnable"
                     , data: {
                         id: data.id,
-                        data: enable
+                        isEnable: enable
                     }
                     , type: 'POST'
                     , success: function (res) {
@@ -331,6 +306,18 @@
                 });
             }
         });
+
+        //执行单个删除
+        function doDelete(obj) {
+            coreHelper.Post("Api/CoreCmsAgentArea/DoDelete", { id: obj.data.id }, function (res) {
+                if (res.code === 0) {
+                    obj.del();
+                    layer.msg(res.msg);
+                } else {
+                    layer.msg(res.msg);
+                }
+            });
+        }
 
         //监听头工具栏事件
         table.on('toolbar(LAY-app-CoreCmsAgentArea-tableBox)', function (obj) {
