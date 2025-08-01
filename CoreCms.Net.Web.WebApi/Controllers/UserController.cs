@@ -491,9 +491,14 @@ namespace CoreCms.Net.Web.WebApi.Controllers
             user.balance = 0;
             user.parentId = 0;
             user.point = 0;
-            //获取用户等级
-            var userGrade = await _userGradeServices.QueryByClauseAsync(p => p.isDefault);
-            user.grade = userGrade?.id ?? 0;
+            // 在用户登录逻辑中，只对新用户设置默认等级
+            if (user.id == 0) // 新用户
+            {
+                //获取用户等级
+                var userGrade = await _userGradeServices.QueryByClauseAsync(p => p.isDefault);
+                user.grade = userGrade?.id ?? 0;
+            }
+            // 对于已存在的用户，保持其当前等级不变
             user.createTime = DateTime.Now;
             user.status = 1;
             user.userWx = wxUserInfo?.id ?? 0;

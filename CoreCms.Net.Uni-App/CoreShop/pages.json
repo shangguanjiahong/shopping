@@ -180,6 +180,13 @@
             "navigationBarTextStyle": "black",
             "navigationBarTitleText": "支付结果"
           }
+        },
+        {
+          "path": "vip/payment",
+          "style": {
+            "navigationBarTextStyle": "black",
+            "navigationBarTitleText": "成为尊享会员"
+          }
         }
       ]
     },
@@ -747,6 +754,13 @@
           "style": {
             "navigationBarTextStyle": "black",
             "navigationBarTitleText": "提货单列表"
+          }
+        },
+        {
+          "path": "vip/index",
+          "style": {
+            "navigationBarTextStyle": "black",
+            "navigationBarTitleText": "开通尊享会员"
           }
         }
       ]

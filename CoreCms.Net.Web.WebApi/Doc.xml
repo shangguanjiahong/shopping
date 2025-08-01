@@ -1220,6 +1220,46 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:CoreCms.Net.Web.WebApi.Controllers.UserVipController">
+            <summary>
+            VIP会员控制器
+            </summary>
+        </member>
+        <member name="M:CoreCms.Net.Web.WebApi.Controllers.UserVipController.#ctor(CoreCms.Net.IServices.ICoreCmsUserVipServices,CoreCms.Net.IServices.ICoreCmsBillPaymentsServices,CoreCms.Net.Auth.HttpContextUser.IHttpContextUser)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="userVipServices"></param>
+            <param name="billPaymentsServices"></param>
+            <param name="user"></param>
+        </member>
+        <member name="M:CoreCms.Net.Web.WebApi.Controllers.UserVipController.Create(System.Object)">
+            <summary>
+            创建VIP会员支付订单
+            </summary>
+            <param name="request">请求参数，包含vipLevel(VIP等级)和amount(支付金额)</param>
+            <returns></returns>
+        </member>
+        <member name="M:CoreCms.Net.Web.WebApi.Controllers.UserVipController.GetInfo">
+            <summary>
+            获取用户VIP信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CoreCms.Net.Web.WebApi.Controllers.UserVipController.GetOrderStatus(System.String)">
+            <summary>
+            获取VIP订单状态
+            </summary>
+            <param name="orderId">支付订单号</param>
+            <returns></returns>
+        </member>
+        <member name="M:CoreCms.Net.Web.WebApi.Controllers.UserVipController.PaySuccess(System.String)">
+            <summary>
+            VIP支付成功回调处理
+            </summary>
+            <param name="payOrderId">支付订单号</param>
+            <returns></returns>
+        </member>
         <member name="T:CoreCms.Net.Web.WebApi.Controllers.WeChatAppletsMessageController">
             <summary>
             微信小程序消息订阅接口

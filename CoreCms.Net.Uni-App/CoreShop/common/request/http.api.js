@@ -1,4 +1,4 @@
-﻿
+
 // 此处第二个参数vm，就是我们在页面使用的this，你可以通过vm获取vuex等操作，更多内容详见uView对拦截器的介绍部分：
 // https://uviewui.com/js/http.html#%E4%BD%95%E8%B0%93%E8%AF%B7%E6%B1%82%E6%8B%A6%E6%88%AA%EF%BC%9F
 const install = (Vue, vm) => {
@@ -370,6 +370,11 @@ const install = (Vue, vm) => {
     //核销服务券
     let serviceVerificationTicket = (params = {}) => vm.$u.post('/Api/Service/VerificationTicket', params, { method: 'service.verificationTicket', needToken: true });
 
+    // VIP相关API接口定义
+    let createVipOrder = (params = {}) => vm.$u.post('/api/UserVip/Create', params, { method: 'vip.createOrder', needToken: true });
+    let getVipInfo = (params = {}) => vm.$u.get('/api/UserVip/GetInfo', params, { method: 'vip.getInfo', needToken: true });
+    let getVipOrderStatus = (params = {}) => vm.$u.get('/api/UserVip/GetOrderStatus', params, { method: 'vip.getOrderStatus', needToken: true });
+    let payOrder = (params = {}) => vm.$u.post('/Api/User/Pay', params, { method: 'user.pay', needToken: true });
 
     // 用户注册（废弃，改为自动获取app数据及使用短信验证码登录）建议直接使用smsLogin接口
     //let reg  = (params = {}) => vm.$u.post('/Api/Common/InterFaceTest', params, { method: 'user.reg', needToken: true });
@@ -551,6 +556,7 @@ const install = (Vue, vm) => {
         subscriptionIsTip,
         share,
         deshare,
+        
         getServicelist,
         getServiceDetail,
         addServiceOrder,
@@ -559,7 +565,13 @@ const install = (Vue, vm) => {
         getverificationPageList,
         serviceLogDelete,
         getServiceVerificationTicketInfo,
-        serviceVerificationTicket
+        serviceVerificationTicket,
+        
+        // VIP相关接口
+        createVipOrder,
+        getVipInfo,
+        getVipOrderStatus,
+        payOrder
     };
 }
 

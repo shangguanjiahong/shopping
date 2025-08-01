@@ -1,4 +1,4 @@
-﻿/***********************************************************************
+/***********************************************************************
  *            Project: CoreCms.Net                                     *
  *                Web: https://CoreCms.Net                             *
  *        ProjectName: 核心内容管理系统                                *
@@ -53,10 +53,20 @@ namespace CoreCms.Net.Core.Config
                 //};
 
                 //执行SQL 错误事件，可监控sql（暂时屏蔽，需要可开启）
-                //db.Aop.OnLogExecuting = (sql, p) =>
-                //{
-                //    NLogUtil.WriteFileLog(NLog.LogLevel.Error, LogType.Other, "SqlSugar执行SQL错误事件打印Sql", sql);
-                //};
+                db.Aop.OnLogExecuting = (sql, p) =>
+                {
+                    Console.WriteLine($"[SqlSugar SQL] {sql}");
+                    if (p != null && p.Length > 0)
+                    {
+                        var paramStrings = new string[p.Length];
+                        for (int i = 0; i < p.Length; i++)
+                        {
+                            paramStrings[i] = $"{p[i].ParameterName}={p[i].Value}";
+                        }
+                        Console.WriteLine($"[SqlSugar Parameters] {string.Join(", ", paramStrings)}");
+                    }
+                    NLogUtil.WriteFileLog(NLog.LogLevel.Info, LogType.Other, "SqlSugar执行SQL", sql);
+                };
 
                 //执行SQL 错误事件
                 db.Aop.OnError = (exp) =>

@@ -228,6 +228,55 @@ namespace CoreCms.Net.Services
                 jm.data = dto;
             }
 
+            else if (type == (int)GlobalEnumVars.BillPaymentsType.VipOrder)
+            {
+                // VIP会员支付处理
+                using var vipScope = _serviceProvider.CreateScope();
+                var userVipServices = vipScope.ServiceProvider.GetService<ICoreCmsUserVipServices>();
+                
+                if (userVipServices != null)
+                {
+                    var vipOrderResult = await userVipServices.GetVipOrderStatus(orderId);
+                    if (vipOrderResult.status && vipOrderResult.data != null)
+                    {
+                        var vipOrderData = vipOrderResult.data;
+                        var amount = vipOrderData.GetType().GetProperty("payAmount")?.GetValue(vipOrderData)?.ToString().ObjectToDecimal(0) ?? 0;
+                        
+                        if (amount > 0)
+                        {
+                            dto.rel.Add(new rel()
+                            {
+                                sourceId = orderId,
+                                money = amount
+                            });
+                            dto.money += amount;
+                            
+                            jm.status = true;
+                            jm.data = dto;
+                        }
+                        else
+                        {
+                            jm.status = false;
+                            jm.msg = "VIP订单金额异常";
+                            return jm;
+                        }
+                    }
+                    else
+                    {
+                        jm.status = false;
+                        jm.msg = "VIP订单：" + orderId + "没有找到,或不是有效状态";
+                        return jm;
+                    }
+                }
+                else
+                {
+                    jm.status = false;
+                    jm.msg = "VIP服务未初始化";
+                    return jm;
+                }
+            }
+
+
             else if (false)
             {
                 //todo 其他业务逻辑
@@ -381,7 +430,47 @@ namespace CoreCms.Net.Services
                 jm.status = true;
                 jm.data = dto;
             }
+            //VIP订单
+            else if (type == (int)GlobalEnumVars.BillPaymentsType.VipOrder)
+            {
+                using var vipContainer = _serviceProvider.CreateScope();
+                var vipServices = vipContainer.ServiceProvider.GetService<ICoreCmsUserVipServices>();
+                dto.money = 0;
 
+                foreach (var item in sourceStr)
+                {
+                    var vipOrderResult = await vipServices.GetVipOrderStatus(item);
+                    if (vipOrderResult.status && vipOrderResult.data != null)
+                    {
+                        var vipOrderData = vipOrderResult.data;
+                        var amount = vipOrderData.GetType().GetProperty("payAmount")?.GetValue(vipOrderData)?.ToString().ObjectToDecimal(0) ?? 0;
+                        
+                        if (amount > 0)
+                        {
+                            dto.rel.Add(new rel()
+                            {
+                                sourceId = item,
+                                money = amount
+                            });
+                            dto.money += amount;
+                        }
+                        else
+                        {
+                            jm.status = false;
+                            jm.msg = "VIP订单：" + item + "金额异常";
+                            return jm;
+                        }
+                    }
+                    else
+                    {
+                        jm.status = false;
+                        jm.msg = "VIP订单：" + item + "没有找到,或不是有效状态";
+                        return jm;
+                    }
+                }
+                jm.status = true;
+                jm.data = dto;
+            }
             else if (false)
             {
                 //todo 其他业务逻辑
@@ -432,9 +521,16 @@ namespace CoreCms.Net.Services
                 sourceStr = userId.ToString();
             }
             //判断支付方式是否开启
+            Console.WriteLine($"[DEBUG] 查询支付方式 - paymentCode: {paymentCode}");
             var paymentInfo = await _paymentsServices.QueryByClauseAsync(p => p.code == paymentCode && p.isEnable == true);
+            Console.WriteLine($"[DEBUG] 查询结果 - paymentInfo: {(paymentInfo != null ? $"找到支付方式: {paymentInfo.name}, isEnable: {paymentInfo.isEnable}" : "未找到支付方式")}");
+            
             if (paymentInfo == null)
             {
+                // 再次查询所有支付方式进行调试
+                var allPayments = await _paymentsServices.QueryListByClauseAsync(p => true);
+                Console.WriteLine($"[DEBUG] 所有支付方式: {string.Join(", ", allPayments.Select(p => $"{p.code}(isEnable:{p.isEnable})"))}");
+                
                 jm.data = jm.code = 10050;
                 jm.msg = GlobalErrorCodeVars.Code10050;
                 return jm;
@@ -675,6 +771,16 @@ namespace CoreCms.Net.Services
                     //form表单支付
                     var id = billPaymentInfo.sourceId.ObjectToInt(0);
                     await _formSubmitServices.Pay(id);
+                }
+                else if (billPaymentInfo.type == (int)GlobalEnumVars.BillPaymentsType.VipOrder)
+                {
+                    //VIP会员支付成功处理
+                    using var scope = _serviceProvider.CreateScope();
+                    var userVipServices = scope.ServiceProvider.GetService<ICoreCmsUserVipServices>();
+                    if (userVipServices != null)
+                    {
+                        await userVipServices.VipPaySuccess(billPaymentInfo.paymentId);
+                    }
                 }
                 else
                 {

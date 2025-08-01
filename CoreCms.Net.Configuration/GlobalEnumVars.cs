@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace CoreCms.Net.Configuration
 {
@@ -971,6 +971,11 @@ namespace CoreCms.Net.Configuration
             /// </summary>
             [Description("服务订单")]
             ServiceOrder = 5,
+            /// <summary>
+            /// VIP会员
+            /// </summary>
+            [Description("VIP会员")]
+            VipOrder = 6,
         }
         /// <summary>
         /// 付款单状态【对应CoreCmsBillPayments.status字段】
